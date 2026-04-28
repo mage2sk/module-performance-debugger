@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- Profiler is a singleton — same instance shared across all collectors in one request -->
+    <type name="Panth\PerformanceDebugger\Service\Profiler" shared="true"/>
+
+    <!-- Collectors that apply globally (admin + frontend + cron + cli) -->
+    <type name="Magento\Framework\App\Http">
+        <plugin name="panth_perf_http_launch" type="Panth\PerformanceDebugger\Plugin\HttpAppPlugin" sortOrder="1"/>
+    </type>
+
+    <type name="Magento\Framework\App\FrontControllerInterface">
+        <plugin name="panth_perf_frontcontroller" type="Panth\PerformanceDebugger\Plugin\FrontControllerPlugin" sortOrder="1"/>
+    </type>
+
+    <type name="Magento\Framework\View\Element\AbstractBlock">
+        <plugin name="panth_perf_block" type="Panth\PerformanceDebugger\Plugin\BlockPlugin" sortOrder="1"/>
+    </type>
+
+    <type name="Magento\Framework\Event\ManagerInterface">
+        <plugin name="panth_perf_event" type="Panth\PerformanceDebugger\Plugin\EventManagerPlugin" sortOrder="1"/>
+    </type>
+
+    <type name="Magento\Framework\View\LayoutInterface">
+        <plugin name="panth_perf_layout" type="Panth\PerformanceDebugger\Plugin\LayoutPlugin" sortOrder="1"/>
+    </type>
+
+    <type name="Magento\Framework\DB\LoggerInterface">
+        <plugin name="panth_perf_db_logger" type="Panth\PerformanceDebugger\Plugin\DbLoggerPlugin" sortOrder="1"/>
+    </type>
+
+    <type name="Magento\Framework\App\ResponseInterface">
+        <plugin name="panth_perf_response_finalize" type="Panth\PerformanceDebugger\Plugin\ResponseFinalizePlugin" sortOrder="100"/>
+    </type>
+
+    <!-- Console command for ad-hoc maintenance -->
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="panth_perf_cleanup" xsi:type="object">Panth\PerformanceDebugger\Console\Command\CleanupCommand</item>
+            </argument>
+        </arguments>
+    </type>
+
+</config>

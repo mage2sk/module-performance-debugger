@@ -1,0 +1,61 @@
+{
+    "panth_perf_run": {
+        "column": {
+            "run_id": true,
+            "token": true,
+            "url": true,
+            "route": true,
+            "method": true,
+            "status_code": true,
+            "area": true,
+            "store_id": true,
+            "total_time": true,
+            "db_time": true,
+            "db_queries": true,
+            "db_slow": true,
+            "db_duplicates": true,
+            "block_time": true,
+            "block_count": true,
+            "observer_time": true,
+            "observer_count": true,
+            "plugin_time": true,
+            "plugin_count": true,
+            "memory_peak": true,
+            "bottleneck_count": true,
+            "severity_max": true,
+            "summary": true,
+            "created_at": true
+        },
+        "index": {
+            "PANTH_PERF_RUN_CREATED_AT": true,
+            "PANTH_PERF_RUN_TOTAL_TIME": true,
+            "PANTH_PERF_RUN_ROUTE": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PANTH_PERF_RUN_TOKEN": true
+        }
+    },
+    "panth_perf_run_event": {
+        "column": {
+            "event_id": true,
+            "run_id": true,
+            "kind": true,
+            "label": true,
+            "source": true,
+            "duration": true,
+            "memory_delta": true,
+            "invocations": true,
+            "severity": true,
+            "meta": true
+        },
+        "index": {
+            "PANTH_PERF_EVENT_RUN_KIND": true,
+            "PANTH_PERF_EVENT_DURATION": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PANTH_PERF_EVENT_RUN_ID_FK": true
+        }
+    }
+}

@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ * Default Configuration Values
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <performance_debugger>
+            <general>
+                <enabled>0</enabled>
+                <show_toolbar>1</show_toolbar>
+                <allowed_ips>127.0.0.1</allowed_ips>
+                <safe_mode>0</safe_mode>
+            </general>
+            <collectors>
+                <track_blocks>1</track_blocks>
+                <track_observers>1</track_observers>
+                <track_plugins>1</track_plugins>
+                <track_db>1</track_db>
+                <track_layout>1</track_layout>
+                <track_di>0</track_di>
+                <track_memory>1</track_memory>
+            </collectors>
+            <thresholds>
+                <slow_query_ms>50</slow_query_ms>
+                <slow_block_ms>50</slow_block_ms>
+                <slow_observer_ms>30</slow_observer_ms>
+                <slow_plugin_ms>20</slow_plugin_ms>
+                <duplicate_query_threshold>3</duplicate_query_threshold>
+            </thresholds>
+            <storage>
+                <persist_runs>1</persist_runs>
+                <retention_hours>24</retention_hours>
+                <max_events_per_run>5000</max_events_per_run>
+            </storage>
+            <export>
+                <enable_xls>1</enable_xls>
+                <enable_pdf>1</enable_pdf>
+            </export>
+        </performance_debugger>
+    </default>
+</config>

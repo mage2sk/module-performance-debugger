@@ -1,0 +1,170 @@
+<?php
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ *
+ * @var \Panth\PerformanceDebugger\Block\Adminhtml\RunDetail $block
+ */
+$run = $block->getRun();
+if (!$run) {
+    return;
+}
+$summary = $run['summary_decoded'] ?? [];
+$allFindings = $summary['findings'] ?? [];
+// Userland findings come first (already sorted that way by analyzer), then core.
+$findings = array_values(array_filter($allFindings, fn($f) => empty($f['is_core'])));
+$coreFindings = array_values(array_filter($allFindings, fn($f) => !empty($f['is_core'])));
+$aggregates = $summary['aggregates'] ?? [];
+?>
+<style>
+.panth-perf-detail{padding:8px 4px}
+.panth-perf-detail h2{margin:0 0 4px;font-size:22px;color:#0f172a}
+.panth-perf-detail h3{margin:18px 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:#64748b}
+.panth-perf-detail .meta{color:#64748b;font-size:12px;margin-bottom:14px;word-break:break-all}
+.panth-perf-toolbar{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.panth-perf-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s}
+.panth-perf-btn:hover{background:#f1f5f9;border-color:#94a3b8;text-decoration:none}
+.panth-perf-btn.primary{background:#0f172a;color:#fff;border-color:#0f172a}
+.panth-perf-btn.primary:hover{background:#1e293b;color:#fff}
+.panth-perf-btn.back{background:#f1f5f9;border-color:#e2e8f0}
+.panth-perf-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+.panth-perf-card{background:linear-gradient(180deg,#f8fafc,#fff);border:1px solid #e5e7eb;border-radius:10px;padding:12px}
+.panth-perf-card .num{font-size:18px;font-weight:700;color:#0f172a;line-height:1.2}
+.panth-perf-card .lbl{font-size:10px;color:#64748b;text-transform:uppercase;margin-top:4px;letter-spacing:.05em;font-weight:500}
+.panth-perf-card.savings{background:linear-gradient(135deg,#dcfce7,#fff);border-color:#86efac}
+.panth-perf-card.savings .num{color:#15803d}
+.panth-perf-detail table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}
+.panth-perf-detail th,.panth-perf-detail td{padding:10px 12px;border-bottom:1px solid #f1f5f9;text-align:left;vertical-align:top}
+.panth-perf-detail th{background:#f8fafc;font-weight:600;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+.panth-perf-detail tr:last-child td{border-bottom:0}
+.panth-perf-sev{display:inline-block;font-size:10px;padding:3px 8px;border-radius:5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.panth-perf-sev.critical{background:#dc2626;color:#fff}
+.panth-perf-sev.high{background:#ea580c;color:#fff}
+.panth-perf-sev.medium{background:#facc15;color:#1f2937}
+.panth-perf-sev.low{background:#a7f3d0;color:#065f46}
+.panth-perf-suggestion{font-size:12px;color:#475569;margin-top:6px;line-height:1.5}
+.panth-perf-savings{color:#16a34a;font-weight:600;white-space:nowrap}
+.panth-perf-sql{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;color:#334155;background:#f1f5f9;padding:8px 10px;border-radius:6px;white-space:pre-wrap;word-break:break-all;margin-top:6px;border-left:3px solid #cbd5e1}
+.panth-perf-callsites{margin-top:8px;padding:8px 10px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px}
+.panth-perf-callsites .ttl{font-size:11px;text-transform:uppercase;color:#92400e;font-weight:700;letter-spacing:.04em;margin-bottom:6px}
+.panth-perf-callsite{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;color:#1f2937;display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-top:1px dashed #fde68a}
+.panth-perf-callsite:first-of-type{border-top:0}
+.panth-perf-callsite .pcount{background:#92400e;color:#fff;font-size:10px;padding:1px 6px;border-radius:9999px;font-weight:700;flex-shrink:0;white-space:nowrap}
+.panth-perf-callsite .pwhere{flex:1;word-break:break-all}
+.panth-perf-empty{padding:40px 20px;text-align:center;color:#94a3b8;background:#f8fafc;border-radius:8px;border:1px dashed #e2e8f0}
+</style>
+
+<div class="panth-perf-detail">
+    <div class="panth-perf-toolbar">
+        <a href="<?= $block->escapeUrl($block->getBackUrl()) ?>" class="panth-perf-btn back">
+            ← <?= $block->escapeHtml(__('Back to Profiler Runs')) ?>
+        </a>
+        <a href="<?= $block->escapeUrl($block->getXlsUrl()) ?>" class="panth-perf-btn">
+            ↓ <?= $block->escapeHtml(__('Download XLS')) ?>
+        </a>
+        <a href="<?= $block->escapeUrl($block->getPdfUrl()) ?>" target="_blank" class="panth-perf-btn primary">
+            🖨 <?= $block->escapeHtml(__('Open PDF Report')) ?>
+        </a>
+    </div>
+
+    <h2><?= $block->escapeHtml(__('Profiler Run #%1', $run['run_id'])) ?></h2>
+    <div class="meta">
+        <strong><?= $block->escapeHtml($run['route']) ?></strong> — <?= $block->escapeHtml($run['url']) ?> · <?= $block->escapeHtml($run['created_at']) ?>
+    </div>
+
+    <?php $totalSavings = array_sum(array_column($findings, 'estimated_savings_ms')); ?>
+    <div class="panth-perf-cards">
+        <div class="panth-perf-card"><div class="num"><?= number_format((float) $run['total_time'], 1) ?> ms</div><div class="lbl"><?= $block->escapeHtml(__('Total time')) ?></div></div>
+        <div class="panth-perf-card"><div class="num"><?= (int) $run['db_queries'] ?></div><div class="lbl"><?= $block->escapeHtml(__('DB queries')) ?></div></div>
+        <div class="panth-perf-card"><div class="num"><?= number_format((float) $run['db_time'], 1) ?> ms</div><div class="lbl"><?= $block->escapeHtml(__('DB time')) ?></div></div>
+        <div class="panth-perf-card"><div class="num"><?= (int) $run['db_slow'] ?></div><div class="lbl"><?= $block->escapeHtml(__('Slow queries')) ?></div></div>
+        <div class="panth-perf-card"><div class="num"><?= (int) $run['db_duplicates'] ?></div><div class="lbl"><?= $block->escapeHtml(__('Duplicates')) ?></div></div>
+        <div class="panth-perf-card"><div class="num"><?= (int) $run['block_count'] ?></div><div class="lbl"><?= $block->escapeHtml(__('Blocks')) ?></div></div>
+        <div class="panth-perf-card"><div class="num"><?= number_format((float) $run['block_time'], 1) ?> ms</div><div class="lbl"><?= $block->escapeHtml(__('Block render')) ?></div></div>
+        <div class="panth-perf-card"><div class="num"><?= number_format((int) $run['memory_peak'] / 1024 / 1024, 1) ?> MB</div><div class="lbl"><?= $block->escapeHtml(__('Peak memory')) ?></div></div>
+        <div class="panth-perf-card savings"><div class="num">−<?= number_format($totalSavings, 1) ?> ms</div><div class="lbl"><?= $block->escapeHtml(__('Estimated savings')) ?></div></div>
+    </div>
+
+    <h3><?= $block->escapeHtml(__('Your bottlenecks (%1)', count($findings))) ?></h3>
+    <?php if (empty($findings)): ?>
+        <div class="panth-perf-empty"><?= $block->escapeHtml(__('No bottlenecks in your code for this run. Nice page!')) ?>
+        <?php if (!empty($coreFindings)): ?>
+            <div style="margin-top:8px;font-size:12px;color:#64748b"><?= $block->escapeHtml(__('%1 Magento core finding(s) below — informational only.', count($coreFindings))) ?></div>
+        <?php endif; ?>
+        </div>
+    <?php else: ?>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:90px"><?= $block->escapeHtml(__('Severity')) ?></th>
+                    <th><?= $block->escapeHtml(__('Issue, fix & call origin')) ?></th>
+                    <th style="width:110px"><?= $block->escapeHtml(__('Measured')) ?></th>
+                    <th style="width:110px"><?= $block->escapeHtml(__('Saving')) ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($findings as $f): ?>
+                    <tr>
+                        <td><span class="panth-perf-sev <?= $block->escapeHtmlAttr($f['severity']) ?>"><?= $block->escapeHtml($f['severity']) ?></span></td>
+                        <td>
+                            <strong><?= $block->escapeHtml($f['title']) ?></strong>
+                            <div class="panth-perf-suggestion"><?= $block->escapeHtml($f['why'] ?? '') ?></div>
+                            <div class="panth-perf-suggestion"><strong><?= $block->escapeHtml(__('Fix:')) ?></strong> <?= $block->escapeHtml($f['suggestion'] ?? '') ?></div>
+                            <?php if (!empty($f['source'])): ?>
+                                <div class="panth-perf-sql"><?= $block->escapeHtml($f['source']) ?></div>
+                            <?php endif; ?>
+                            <?php $sites = $f['callsites'] ?? []; if (!empty($sites)): ?>
+                                <div class="panth-perf-callsites">
+                                    <div class="ttl"><?= $block->escapeHtml(__('Called from %1 location(s):', count($sites))) ?></div>
+                                    <?php foreach ($sites as $cs): ?>
+                                        <div class="panth-perf-callsite">
+                                            <span class="pwhere"><?= $block->escapeHtml($cs['summary']) ?></span>
+                                            <?php if (!empty($cs['count']) && $cs['count'] > 1): ?>
+                                                <span class="pcount">×<?= (int) $cs['count'] ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </td>
+                        <td><?= number_format((float) $f['measured_ms'], 1) ?> ms<?php if (!empty($f['invocations']) && $f['invocations'] > 1): ?><div style="font-size:11px;color:#94a3b8">×<?= (int) $f['invocations'] ?> calls</div><?php endif; ?></td>
+                        <td class="panth-perf-savings">−<?= number_format((float) $f['estimated_savings_ms'], 1) ?> ms</td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
+
+    <?php if (!empty($coreFindings)): ?>
+        <h3 style="margin-top:24px"><?= $block->escapeHtml(__('Magento core findings (%1) — informational only', count($coreFindings))) ?></h3>
+        <div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#475569">
+            <?= $block->escapeHtml(__('These findings originate inside vendor/magento/*. They cost real time but you usually cannot fix them without forking framework code. Surface them only when triaging deeper Magento perf issues.')) ?>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:90px"><?= $block->escapeHtml(__('Severity')) ?></th>
+                    <th><?= $block->escapeHtml(__('Issue & origin')) ?></th>
+                    <th style="width:110px"><?= $block->escapeHtml(__('Measured')) ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($coreFindings as $f): ?>
+                    <tr>
+                        <td><span class="panth-perf-sev <?= $block->escapeHtmlAttr($f['severity']) ?>"><?= $block->escapeHtml($f['severity']) ?></span></td>
+                        <td>
+                            <strong><?= $block->escapeHtml($f['title']) ?></strong>
+                            <?php if (!empty($f['module'])): ?>
+                                <span class="panth-perf-sev" style="background:#fef3c7;color:#92400e;margin-left:6px"><?= $block->escapeHtml($f['module']) ?></span>
+                            <?php endif; ?>
+                            <div class="panth-perf-suggestion"><?= $block->escapeHtml($f['why'] ?? '') ?></div>
+                            <?php if (!empty($f['source'])): ?>
+                                <div class="panth-perf-sql"><?= $block->escapeHtml(substr((string) $f['source'], 0, 400)) ?></div>
+                            <?php endif; ?>
+                        </td>
+                        <td><?= number_format((float) $f['measured_ms'], 1) ?> ms<?php if (!empty($f['invocations']) && $f['invocations'] > 1): ?><div style="font-size:11px;color:#94a3b8">×<?= (int) $f['invocations'] ?> calls</div><?php endif; ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
+</div>

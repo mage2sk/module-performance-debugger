@@ -1,0 +1,601 @@
+<?php
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ *
+ * Storefront performance debugger toolbar.
+ *
+ * Vanilla HTML/CSS/JS — zero dependency on jQuery, RequireJS, KnockoutJS or
+ * Alpine.js. The same markup runs identically in Hyva, Luma, Breeze and any
+ * custom Magento 2 theme. CSS is namespaced under .panth-pdbg- so it cannot
+ * collide with theme styles.
+ *
+ * @var \Panth\PerformanceDebugger\Block\Toolbar $block
+ */
+
+if (!$block->shouldRender()) {
+    return;
+}
+$payload = $block->getPayloadJson();
+$elemId = 'panth-pdbg-' . substr(sha1($payload), 0, 8);
+?>
+<div id="<?= $block->escapeHtmlAttr($elemId) ?>" class="panth-pdbg-root" data-pdbg-payload='<?= /* @noEscape */ htmlspecialchars($payload, ENT_QUOTES, 'UTF-8') ?>'></div>
+
+<style>
+.panth-pdbg-root,.panth-pdbg-root *{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#1f2937;line-height:1.4}
+.panth-pdbg-root svg{display:inline-block;vertical-align:middle;flex-shrink:0}
+
+/* Launcher pill */
+.panth-pdbg-launcher,.panth-pdbg-launcher *{color:#fff}
+.panth-pdbg-launcher{position:fixed;bottom:14px;right:14px;z-index:2147483646;background:#0f172a;color:#fff;border-radius:9999px;padding:9px 14px;cursor:pointer;font-weight:600;display:inline-flex;gap:8px;align-items:center;box-shadow:0 6px 18px rgba(15,23,42,.3);user-select:none;transition:transform .12s ease,box-shadow .12s ease;font-size:12px}
+.panth-pdbg-launcher:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(15,23,42,.35)}
+.panth-pdbg-launcher.crit{background:#dc2626}
+.panth-pdbg-launcher.high{background:#ea580c}
+.panth-pdbg-launcher.med{background:#ca8a04}
+.panth-pdbg-launcher .pdot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0}
+.panth-pdbg-launcher.crit .pdot,.panth-pdbg-launcher.high .pdot,.panth-pdbg-launcher.med .pdot{background:#fff;animation:panth-pulse 1.6s ease-in-out infinite}
+@keyframes panth-pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Panel shell */
+.panth-pdbg-panel{position:fixed;right:14px;top:60px;bottom:60px;width:min(820px,calc(100vw - 28px));background:#fff;border-radius:14px;box-shadow:0 24px 60px rgba(15,23,42,.18),0 0 0 1px rgba(15,23,42,.08);z-index:2147483647;display:none;overflow:hidden;flex-direction:column}
+.panth-pdbg-panel.open{display:flex}
+
+/* Light header */
+.panth-pdbg-head{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 16px;background:#fff;border-bottom:1px solid #e5e7eb;flex-shrink:0}
+.panth-pdbg-head .htitle{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.panth-pdbg-head .hlogo{width:32px;height:32px;background:linear-gradient(135deg,#0f172a,#334155);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fde047}
+.panth-pdbg-head .htext{min-width:0}
+.panth-pdbg-head h3{margin:0;font-size:14px;font-weight:700;color:#0f172a;letter-spacing:-.01em}
+.panth-pdbg-head .meta{font-size:11px;color:#64748b;margin-top:2px;word-break:break-all;line-height:1.3}
+.panth-pdbg-head .meta strong{color:#0f172a;font-weight:600}
+.panth-pdbg-close{cursor:pointer;background:#f1f5f9;border:0;color:#475569;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .12s,color .12s}
+.panth-pdbg-close:hover{background:#e2e8f0;color:#0f172a}
+
+/* Tabs */
+.panth-pdbg-tabs{display:flex;border-bottom:1px solid #e5e7eb;background:#fafbfc;overflow-x:auto;flex-shrink:0;scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
+.panth-pdbg-tabs::-webkit-scrollbar{height:4px}
+.panth-pdbg-tabs::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+.panth-pdbg-tab{padding:10px 14px;cursor:pointer;border:0;background:transparent;font-size:12px;color:#475569;border-bottom:2px solid transparent;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;font-weight:500;transition:color .12s,background .12s}
+.panth-pdbg-tab:hover{color:#0f172a;background:rgba(15,23,42,.04)}
+.panth-pdbg-tab.active{color:#0f172a;border-bottom-color:#0f172a;font-weight:600;background:#fff}
+.panth-pdbg-tab .badge{background:#e5e7eb;color:#475569;font-size:10px;border-radius:9999px;padding:1px 6px;font-weight:600;line-height:1.4}
+.panth-pdbg-tab.active .badge{background:#0f172a;color:#fff}
+.panth-pdbg-tab .badge.crit{background:#dc2626;color:#fff}
+
+/* Body */
+.panth-pdbg-body{padding:14px 16px;overflow:auto;background:#fff;flex:1 1 auto;scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
+.panth-pdbg-body::-webkit-scrollbar{width:6px}
+.panth-pdbg-body::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:6px}
+.panth-pdbg-section-title{margin:14px 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.panth-pdbg-section-title:first-child{margin-top:0}
+
+/* Cards */
+.panth-pdbg-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:8px}
+.panth-pdbg-card{background:linear-gradient(180deg,#f8fafc 0%,#fff 100%);border:1px solid #e5e7eb;border-radius:10px;padding:12px}
+.panth-pdbg-card .num{font-size:18px;font-weight:700;color:#0f172a;line-height:1.2}
+.panth-pdbg-card .lbl{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-top:4px;font-weight:600}
+.panth-pdbg-card.savings{background:linear-gradient(135deg,#dcfce7 0%,#fff 100%);border-color:#86efac}
+.panth-pdbg-card.savings .num{color:#15803d}
+.panth-pdbg-card.bad{background:linear-gradient(135deg,#fef2f2 0%,#fff 100%);border-color:#fecaca}
+.panth-pdbg-card.bad .num{color:#dc2626}
+
+/* Tables */
+.panth-pdbg-table{width:100%;border-collapse:collapse;font-size:12px}
+.panth-pdbg-table th,.panth-pdbg-table td{padding:8px 10px;border-bottom:1px solid #f1f5f9;text-align:left;vertical-align:top}
+.panth-pdbg-table th{background:#f8fafc;color:#64748b;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em;position:sticky;top:0;z-index:1}
+.panth-pdbg-table tr:hover td{background:#fafbfc}
+.panth-pdbg-table tr:last-child td{border-bottom:0}
+
+/* Bars */
+.panth-pdbg-bar{height:6px;background:#f1f5f9;border-radius:9999px;overflow:hidden;min-width:50px;width:100%}
+.panth-pdbg-bar>span{display:block;height:100%;background:linear-gradient(90deg,#0f172a,#475569);border-radius:9999px}
+.panth-pdbg-bar.warn>span{background:linear-gradient(90deg,#facc15,#f97316)}
+.panth-pdbg-bar.bad>span{background:linear-gradient(90deg,#ea580c,#dc2626)}
+
+/* Badges & severity (own !important-ish color cascade since universal selector resets all colors) */
+.panth-pdbg-sev{display:inline-block;font-size:10px;padding:3px 7px;border-radius:5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;line-height:1.2}
+.panth-pdbg-sev.critical,.panth-pdbg-sev.critical *{background:#dc2626;color:#fff}
+.panth-pdbg-sev.high,.panth-pdbg-sev.high *{background:#ea580c;color:#fff}
+.panth-pdbg-sev.medium,.panth-pdbg-sev.medium *{background:#facc15;color:#1f2937}
+.panth-pdbg-sev.low,.panth-pdbg-sev.low *{background:#a7f3d0;color:#065f46}
+.panth-pdbg-tab .badge.crit,.panth-pdbg-tab .badge.crit *{color:#fff}
+.panth-pdbg-btn,.panth-pdbg-btn:not(.ghost) *{color:#fff}
+.panth-pdbg-btn.ghost,.panth-pdbg-btn.ghost *{color:#475569}
+.panth-pdbg-mod{display:inline-block;font-size:10px;padding:2px 7px;border-radius:9999px;font-weight:600;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;letter-spacing:.02em}
+.panth-pdbg-kind{display:inline-block;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:#f1f5f9;color:#475569}
+.panth-pdbg-kind.block{background:#e0f2fe;color:#0369a1}
+.panth-pdbg-kind.observer{background:#fef3c7;color:#92400e}
+.panth-pdbg-kind.query{background:#fce7f3;color:#9d174d}
+.panth-pdbg-kind.layout{background:#ede9fe;color:#5b21b6}
+.panth-pdbg-kind.controller{background:#dcfce7;color:#166534}
+
+/* Code block */
+.panth-pdbg-sql{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;color:#334155;background:#f1f5f9;padding:6px 8px;border-radius:6px;white-space:pre-wrap;word-break:break-all;margin-top:4px;line-height:1.5}
+.panth-pdbg-mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;color:#475569;word-break:break-all}
+
+/* Search + buttons */
+.panth-pdbg-toolrow{display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
+.panth-pdbg-toolrow input,.panth-pdbg-toolrow select{padding:7px 10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;background:#fff;transition:border-color .12s}
+.panth-pdbg-toolrow input{flex:1;min-width:140px}
+.panth-pdbg-toolrow input:focus,.panth-pdbg-toolrow select:focus{outline:0;border-color:#0f172a;box-shadow:0 0 0 3px rgba(15,23,42,.08)}
+.panth-pdbg-btn{padding:7px 12px;background:#0f172a;color:#fff;border:0;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:background .12s;white-space:nowrap}
+.panth-pdbg-btn:hover{background:#1e293b}
+.panth-pdbg-btn.ghost{background:#f1f5f9;color:#475569}
+.panth-pdbg-btn.ghost:hover{background:#e2e8f0;color:#0f172a}
+.panth-pdbg-btn.tiny{padding:3px 8px;font-size:10px;border-radius:5px}
+
+/* Empty / suggestion */
+.panth-pdbg-empty{padding:32px 16px;text-align:center;color:#94a3b8;font-size:12px;background:#f8fafc;border-radius:10px;border:1px dashed #e2e8f0}
+.panth-pdbg-empty .ico{font-size:32px;display:block;margin-bottom:8px}
+.panth-pdbg-suggestion{font-size:12px;color:#475569;margin-top:6px;line-height:1.45}
+.panth-pdbg-savings{font-weight:700;color:#16a34a;font-size:11px;white-space:nowrap}
+
+/* Issue card / call trail */
+.panth-pdbg-issue{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:10px}
+.panth-pdbg-issue .ihead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.panth-pdbg-issue .ititle{font-weight:700;color:#0f172a;font-size:13px;flex:1;min-width:0}
+.panth-pdbg-issue .istats{display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.panth-pdbg-issue .istats .stat{font-size:10px;color:#475569;background:#f1f5f9;padding:2px 6px;border-radius:4px;font-weight:600}
+.panth-pdbg-issue .istats .stat.measured{background:#fee2e2;color:#991b1b}
+.panth-pdbg-issue .istats .stat.saving{background:#dcfce7;color:#15803d}
+.panth-pdbg-callsites{margin-top:8px;padding:8px 10px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px}
+.panth-pdbg-callsites .ttl{font-size:10px;text-transform:uppercase;color:#92400e;font-weight:700;letter-spacing:.04em;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.panth-pdbg-cs{font-family:ui-monospace,Consolas,monospace;font-size:11px;color:#1f2937;padding:4px 0;border-top:1px dashed #fde68a;display:flex;justify-content:space-between;gap:8px;cursor:pointer}
+.panth-pdbg-cs:first-of-type{border-top:0}
+.panth-pdbg-cs:hover{background:rgba(254,240,138,.4);border-radius:4px;padding-left:4px;padding-right:4px}
+.panth-pdbg-cs .pwhere{flex:1;word-break:break-all}
+.panth-pdbg-cs .pcount{background:#92400e;color:#fff;font-size:10px;padding:1px 6px;border-radius:9999px;font-weight:700;flex-shrink:0;white-space:nowrap;align-self:center}
+.panth-pdbg-trail{padding:6px 10px;margin-top:4px;background:#fff;border:1px dashed #fde68a;border-radius:6px;font-family:ui-monospace,Consolas,monospace;font-size:10px;color:#475569;display:none}
+.panth-pdbg-trail.open{display:block}
+.panth-pdbg-trail .tline{padding:2px 0;display:flex;gap:6px}
+.panth-pdbg-trail .tline .tnum{color:#94a3b8;width:18px;flex-shrink:0;text-align:right}
+.panth-pdbg-binds{margin-top:6px;padding:8px 10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px}
+.panth-pdbg-binds .ttl{font-size:10px;text-transform:uppercase;color:#1e40af;font-weight:700;letter-spacing:.04em;margin-bottom:4px}
+.panth-pdbg-binds .row{font-family:ui-monospace,Consolas,monospace;font-size:11px;color:#1f2937;display:flex;gap:8px;padding:2px 0;border-top:1px dashed #bfdbfe}
+.panth-pdbg-binds .row:first-of-type{border-top:0}
+.panth-pdbg-binds .bname{color:#1e40af;font-weight:700;flex-shrink:0}
+.panth-pdbg-binds .bvals{color:#475569;word-break:break-all}
+.panth-pdbg-fix{margin-top:8px;padding:8px 10px;background:#dcfce7;border:1px solid #86efac;border-radius:6px;font-size:11px;color:#14532d}
+.panth-pdbg-fix strong{color:#14532d}
+
+/* Footer */
+.panth-pdbg-foot{padding:8px 16px;background:#fafbfc;border-top:1px solid #e5e7eb;font-size:11px;color:#64748b;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;gap:8px}
+.panth-pdbg-foot .stats{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.panth-pdbg-foot a{color:#0f172a;text-decoration:none;font-weight:600;flex-shrink:0}
+.panth-pdbg-foot a:hover{text-decoration:underline}
+.panth-pdbg-toast{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;font-size:11px;padding:6px 12px;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .2s}
+.panth-pdbg-toast.show{opacity:1}
+
+@media(max-width:680px){
+  .panth-pdbg-panel{width:calc(100vw - 12px);right:6px;top:50px;bottom:50px;border-radius:10px}
+  .panth-pdbg-launcher{bottom:8px;right:8px;font-size:11px;padding:7px 10px}
+  .panth-pdbg-tab{padding:9px 10px}
+}
+</style>
+
+<script>
+(function(){
+  var rootId = <?= /* @noEscape */ json_encode($elemId) ?>;
+  var root = document.getElementById(rootId);
+  if(!root) return;
+  var data;
+  try{ data = JSON.parse(root.getAttribute('data-pdbg-payload')||'{}'); }catch(e){ return; }
+  if(!data || !data.token) return;
+
+  var fmtMs  = function(n){ return (Math.round(n*100)/100).toFixed(2)+' ms'; };
+  var fmtNum = function(n){ return Number(n||0).toLocaleString(); };
+  var esc    = function(s){ var d=document.createElement('div'); d.textContent=String(s==null?'':s); return d.innerHTML; };
+  var pct    = function(part,whole){ return whole>0 ? Math.round(part*100/whole) : 0; };
+
+  var ico = {
+    bolt:  '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>',
+    home:  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>',
+    list:  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+    db:    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>',
+    box:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7l9-5z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>',
+    alert: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+    bulb:  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7c.7.6 1 1.4 1 2.3v1h6v-1c0-.9.3-1.7 1-2.3A7 7 0 0012 2z"/></svg>',
+    close: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    chevR: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>',
+    chevL: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>',
+    copy:  '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>'
+  };
+
+  var worst = (data.findings||[]).reduce(function(acc,f){
+    var w={low:1,medium:2,high:3,critical:4}[f.severity]||0;
+    return w>acc?w:acc;
+  },0);
+  var launcherCls = ['','low','med','high','crit'][worst]||'';
+  var counts = {
+    block: (data.aggregates&&data.aggregates.block&&data.aggregates.block.count)||0,
+    observer: (data.aggregates&&data.aggregates.observer&&data.aggregates.observer.count)||0,
+    query: (data.aggregates&&data.aggregates.query&&data.aggregates.query.count)||0,
+    layout: (data.aggregates&&data.aggregates.layout&&data.aggregates.layout.count)||0,
+    findings: (data.userlandFindings||[]).length,
+    coreFindings: (data.coreFindings||[]).length
+  };
+  // Worst severity is computed across USERLAND only — core findings should
+  // never raise the launcher to red since they're not actionable.
+  worst = (data.userlandFindings||[]).reduce(function(acc,f){
+    var w={low:1,medium:2,high:3,critical:4}[f.severity]||0;
+    return w>acc?w:acc;
+  },0);
+  launcherCls = ['','low','med','high','crit'][worst]||'';
+
+  var copyToClipboard = function(text){
+    try {
+      navigator.clipboard.writeText(text);
+      showToast('Copied!');
+    } catch(e) {
+      var t = document.createElement('textarea');
+      t.value = text; document.body.appendChild(t); t.select();
+      try{document.execCommand('copy');}catch(_){}
+      document.body.removeChild(t);
+      showToast('Copied!');
+    }
+  };
+  var showToast = function(msg){
+    var t = root.querySelector('.panth-pdbg-toast');
+    if(!t){ t = document.createElement('div'); t.className='panth-pdbg-toast'; root.querySelector('.panth-pdbg-panel').appendChild(t); }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(function(){t.classList.remove('show');}, 1400);
+  };
+
+  // ---------- Markup ----------
+  var html = ''
+    + '<div class="panth-pdbg-launcher '+launcherCls+'" data-pdbg="open" title="Open Performance Debugger — '+counts.findings+' your issues, '+counts.coreFindings+' core findings">'
+    +   ico.bolt + '<span>'+fmtMs(data.totalMs)+' · '+counts.query+' SQL · '+counts.findings+' your issues'+(counts.coreFindings?' (+'+counts.coreFindings+' core)':'')+'</span>'
+    + '</div>'
+    + '<div class="panth-pdbg-panel" data-pdbg-panel role="dialog" aria-label="Performance Debugger">'
+    +   '<div class="panth-pdbg-head">'
+    +     '<div class="htitle">'
+    +       '<div class="hlogo">'+ico.bolt+'</div>'
+    +       '<div class="htext">'
+    +         '<h3>Performance Debugger</h3>'
+    +         '<div class="meta"><strong>'+esc(data.route||'(no-route)')+'</strong> — '+esc(data.url)+'</div>'
+    +       '</div>'
+    +     '</div>'
+    +     '<button class="panth-pdbg-close" data-pdbg="close" aria-label="Close">'+ico.close+'</button>'
+    +   '</div>'
+    +   '<div class="panth-pdbg-tabs" role="tablist">'
+    +     '<button class="panth-pdbg-tab active" data-tab="overview" role="tab">'+ico.home+'<span>Overview</span></button>'
+    +     '<button class="panth-pdbg-tab" data-tab="timeline" role="tab">'+ico.list+'<span>Timeline</span></button>'
+    +     '<button class="panth-pdbg-tab" data-tab="queries" role="tab">'+ico.db+'<span>Queries</span>'+(counts.query?'<span class="badge">'+counts.query+'</span>':'')+'</button>'
+    +     '<button class="panth-pdbg-tab" data-tab="modules" role="tab">'+ico.box+'<span>Modules</span></button>'
+    +     '<button class="panth-pdbg-tab" data-tab="bottlenecks" role="tab">'+ico.alert+'<span>Issues</span>'+(counts.findings?'<span class="badge crit">'+counts.findings+'</span>':'')+'</button>'
+    +     '<button class="panth-pdbg-tab" data-tab="suggestions" role="tab">'+ico.bulb+'<span>Fix it</span></button>'
+    +     '<button class="panth-pdbg-tab" data-tab="core" role="tab" title="Magento core findings — informational only">⚙ <span>Core</span>'+(counts.coreFindings?'<span class="badge">'+counts.coreFindings+'</span>':'')+'</button>'
+    +   '</div>'
+    +   '<div class="panth-pdbg-body" data-pdbg-body></div>'
+    +   '<div class="panth-pdbg-foot">'
+    +     '<span class="stats">'+fmtMs(data.totalMs)+' · '+counts.query+' SQL · '+counts.block+' blocks · '+counts.observer+' observers · '+data.memoryPeakMb+' MB</span>'
+    +     '<a href="#" data-pdbg="reload" title="Reload to capture a fresh run">↻ Re-profile</a>'
+    +   '</div>'
+    + '</div>';
+  root.innerHTML = html;
+
+  var panel = root.querySelector('[data-pdbg-panel]');
+  var body  = root.querySelector('[data-pdbg-body]');
+
+  // ---------- Render helpers ----------
+  var renderModule = function(m){ return m ? '<span class="panth-pdbg-mod">'+esc(m)+'</span>' : ''; };
+  var renderKind = function(k){ return '<span class="panth-pdbg-kind '+esc(k)+'">'+esc(k)+'</span>'; };
+  var renderCallsites = function(sites){
+    if(!sites||!sites.length) return '';
+    var rows = sites.map(function(cs,i){
+      var trail = (cs.trail||[]).map(function(f,n){
+        return '<div class="tline"><span class="tnum">'+(n+1)+'</span><span>'+esc(f.callable||'')+' <span style="color:#94a3b8">('+esc(f.file||'')+(f.line?':'+f.line:'')+')</span></span></div>';
+      }).join('');
+      var trailId = 'trail-'+Math.random().toString(36).substr(2,6);
+      var hasTrail = (cs.trail||[]).length > 1;
+      var badge = (cs.count && cs.count>1) ? '<span class="pcount">×'+cs.count+'</span>' : '';
+      return '<div class="panth-pdbg-cs" '+(hasTrail?('data-trail-toggle="'+trailId+'" title="Click to expand call trail"'):'')+'>'
+        + '<span class="pwhere">'+esc(cs.summary)+'</span>'+badge+'</div>'
+        + (hasTrail ? '<div class="panth-pdbg-trail" id="'+trailId+'">'+trail+'</div>' : '');
+    }).join('');
+    return '<div class="panth-pdbg-callsites">'
+      + '<div class="ttl">Called from '+sites.length+' location'+(sites.length>1?'s':'')+'<span style="color:#92400e;font-weight:500">click to expand call trail ▾</span></div>'
+      + rows + '</div>';
+  };
+  var renderBinds = function(binds){
+    if(!binds||!binds.length) return '';
+    var rows = binds.map(function(b){
+      var more = b.distinct > b.sample.length ? ' (+'+(b.distinct-b.sample.length)+' more)' : '';
+      return '<div class="row"><span class="bname">'+esc(b.name)+'</span><span class="bvals">'+b.distinct+' distinct values: '+esc(b.sample.join(', '))+more+'</span></div>';
+    }).join('');
+    return '<div class="panth-pdbg-binds"><div class="ttl">Distinct bind values</div>'+rows+'</div>';
+  };
+  var renderTiming = function(t){
+    if(!t) return '';
+    return '<span class="stat">min '+fmtMs(t.min)+'</span><span class="stat">avg '+fmtMs(t.avg)+'</span><span class="stat">max '+fmtMs(t.max)+'</span>';
+  };
+
+  // ---------- Tab renderers ----------
+  var renderers = {
+    overview: function(){
+      var a = data.aggregates||{};
+      var totalSavings = data.totalEstimatedSavings||0;
+      var after = Math.max(0, data.totalMs - totalSavings);
+      var card = function(num,lbl,cls){ cls=cls?' '+cls:''; return '<div class="panth-pdbg-card'+cls+'"><div class="num">'+num+'</div><div class="lbl">'+lbl+'</div></div>'; };
+      // Userland-only — core findings are informational and live in the Core tab.
+      var userland = data.userlandFindings||[];
+      var crit = userland.filter(function(f){return f.severity==='critical'||f.severity==='high';}).length;
+      var topFindings = userland.slice(0,5);
+      var fHtml = '';
+      if(topFindings.length){
+        fHtml = '<table class="panth-pdbg-table"><thead><tr><th>Severity</th><th>Issue</th><th>Module</th><th>Time</th><th>Saving</th></tr></thead><tbody>';
+        topFindings.forEach(function(f){
+          fHtml += '<tr><td><span class="panth-pdbg-sev '+esc(f.severity)+'">'+esc(f.severity)+'</span></td>'
+                +  '<td>'+esc(f.title)+'</td>'
+                +  '<td>'+renderModule(f.module)+'</td>'
+                +  '<td style="white-space:nowrap">'+fmtMs(f.measured_ms)+'</td>'
+                +  '<td><span class="panth-pdbg-savings">−'+fmtMs(f.estimated_savings_ms)+'</span></td></tr>';
+        });
+        fHtml += '</tbody></table>';
+      } else {
+        fHtml = '<div class="panth-pdbg-empty"><span class="ico">✓</span>No bottlenecks detected. Nice page!</div>';
+      }
+      // Module breakdown — userland only on Overview (Core has its own tab).
+      var mHtml = '';
+      var topMods = (data.modulesUserland||[]).slice(0,5);
+      if(topMods.length){
+        var maxModT = topMods[0].time||1;
+        mHtml = '<table class="panth-pdbg-table"><thead><tr><th>Module</th><th>Blocks</th><th>SQL</th><th>Obs</th><th>Time</th><th>%</th></tr></thead><tbody>';
+        topMods.forEach(function(m){
+          var p = pct(m.time, data.totalMs);
+          var barCls = p>=20?' bad':(p>=10?' warn':'');
+          mHtml += '<tr><td>'+renderModule(m.module)+'</td>'
+                +  '<td>'+(m.blocks||0)+'</td><td>'+(m.queries||0)+'</td><td>'+(m.observers||0)+'</td>'
+                +  '<td style="white-space:nowrap">'+fmtMs(m.time)+'</td>'
+                +  '<td style="width:80px"><div class="panth-pdbg-bar'+barCls+'"><span style="width:'+Math.min(100,(m.time/maxModT)*100)+'%"></span></div><span style="font-size:10px;color:#94a3b8">'+p+'%</span></td></tr>';
+        });
+        mHtml += '</tbody></table>';
+      } else {
+        mHtml = '<div class="panth-pdbg-empty" style="padding:16px"><span style="font-size:11px">No third-party / theme modules detected on this page. The Core tab has the Magento internals breakdown.</span></div>';
+      }
+      return '<div class="panth-pdbg-cards">'
+        + card(fmtMs(data.totalMs),'Total time', data.totalMs>1000?'bad':'')
+        + card(fmtNum((a.query&&a.query.count)||0),'DB queries')
+        + card(fmtMs((a.query&&a.query.time)||0),'DB time')
+        + card(fmtNum((a.block&&a.block.count)||0),'Blocks')
+        + card(fmtMs((a.block&&a.block.time)||0),'Block render')
+        + card(fmtNum((a.observer&&a.observer.count)||0),'Observers')
+        + card(data.memoryPeakMb+' MB','Peak memory')
+        + card(fmtMs(after),'Time after fixes','savings')
+        + '</div>'
+        + '<div class="panth-pdbg-section-title"><span>Top issues ('+crit+' critical/high)</span>'
+          + (topFindings.length ? '<button class="panth-pdbg-btn ghost" data-go="bottlenecks">See all '+ico.chevR+'</button>' : '')
+          + '</div>'
+        + fHtml
+        + (mHtml ? '<div class="panth-pdbg-section-title"><span>Heaviest modules</span><button class="panth-pdbg-btn ghost" data-go="modules">All modules '+ico.chevR+'</button></div>'+mHtml : '');
+    },
+    timeline: function(){
+      var events = []
+        .concat(((data.eventsByKind||{}).controller||[]))
+        .concat(((data.eventsByKind||{}).layout||[]))
+        .concat(((data.eventsByKind||{}).observer||[]))
+        .concat(((data.eventsByKind||{}).block||[]));
+      if(!events.length) return '<div class="panth-pdbg-empty"><span class="ico">∅</span>No events recorded yet.</div>';
+      events.sort(function(a,b){ return b.duration - a.duration; });
+      events = events.slice(0,300);
+      var max = events.reduce(function(m,e){return Math.max(m,e.duration);},0)||1;
+      var rows = events.map(function(e){
+        var p = Math.min(100,(e.duration/max)*100);
+        var barCls = e.duration>=50 ? ' bad' : (e.duration>=20 ? ' warn' : '');
+        return '<tr><td>'+renderKind(e.kind)+'</td>'
+          + '<td><div style="font-weight:600">'+esc(e.label)+'</div>'
+          + (e.origin?'<div class="panth-pdbg-mono">'+esc(e.origin)+'</div>':'')
+          + '</td>'
+          + '<td>'+renderModule(e.module)+'</td>'
+          + '<td style="width:25%;min-width:80px"><div class="panth-pdbg-bar'+barCls+'"><span style="width:'+p+'%"></span></div></td>'
+          + '<td style="white-space:nowrap;font-weight:600">'+fmtMs(e.duration)+'</td></tr>';
+      }).join('');
+      return '<div class="panth-pdbg-toolrow">'
+        + '<input type="text" placeholder="Filter by name, file, module..." data-pdbg-filter="table">'
+        + '<button class="panth-pdbg-btn ghost" data-go="overview">'+ico.chevL+' Overview</button>'
+        + '</div>'
+        + '<table class="panth-pdbg-table"><thead><tr><th>Kind</th><th>Label & origin</th><th>Module</th><th>Bar</th><th>Time</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    },
+    queries: function(){
+      var qs = ((data.eventsByKind||{}).query)||[];
+      if(!qs.length) return '<div class="panth-pdbg-empty"><span class="ico">∅</span>No queries recorded. Enable the DB collector if you expected some.</div>';
+      var sorted = qs.slice().sort(function(a,b){return b.duration-a.duration;}).slice(0,300);
+      var dupe = {};
+      (data.duplicates||[]).forEach(function(d){ dupe[d.fingerprint]=d.count; });
+      var rows = sorted.map(function(e,idx){
+        var fp = e.meta&&e.meta.fingerprint?e.meta.fingerprint:e.label;
+        var dup = dupe[fp]?'<span class="panth-pdbg-sev high" style="margin-left:6px">×'+dupe[fp]+'</span>':'';
+        var sevLbl = e.duration>=50?'high':(e.duration>=10?'medium':'low');
+        var sqlId = 'sql-'+idx;
+        return '<tr><td style="white-space:nowrap;width:120px"><span class="panth-pdbg-sev '+sevLbl+'">'+fmtMs(e.duration)+'</span>'+dup+'</td>'
+          + '<td>'
+          +   '<div class="panth-pdbg-sql" id="'+sqlId+'">'+esc(e.label)+'</div>'
+          +   (e.origin?'<div style="margin-top:4px;display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="panth-pdbg-mono" style="color:#1e40af">↳ '+esc(e.origin)+'</span><button class="panth-pdbg-btn tiny ghost" data-copy="'+sqlId+'">'+ico.copy+' SQL</button></div>':'')
+          + '</td></tr>';
+      }).join('');
+      return '<div class="panth-pdbg-toolrow">'
+        + '<input type="text" placeholder="Filter SQL or origin..." data-pdbg-filter="table">'
+        + '<button class="panth-pdbg-btn ghost" data-go="overview">'+ico.chevL+' Overview</button>'
+        + '</div>'
+        + '<table class="panth-pdbg-table"><thead><tr><th>Time</th><th>SQL & origin</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    },
+    modules: function(){
+      var renderTbl = function(mods, label){
+        if(!mods.length) return '';
+        var maxT = mods[0]&&mods[0].time?mods[0].time:1;
+        var rows = mods.map(function(m){
+          var p = pct(m.time, data.totalMs);
+          var barCls = p>=20?' bad':(p>=10?' warn':'');
+          return '<tr><td>'+renderModule(m.module)+'</td>'
+            + '<td><span class="panth-pdbg-kind block">'+(m.blocks||0)+'</span></td>'
+            + '<td><span class="panth-pdbg-kind query">'+(m.queries||0)+'</span></td>'
+            + '<td><span class="panth-pdbg-kind observer">'+(m.observers||0)+'</span></td>'
+            + '<td>'+(m.other||0)+'</td>'
+            + '<td><div class="panth-pdbg-bar'+barCls+'"><span style="width:'+Math.min(100,(m.time/maxT)*100)+'%"></span></div></td>'
+            + '<td style="white-space:nowrap;font-weight:600">'+fmtMs(m.time)+'</td>'
+            + '<td style="white-space:nowrap;color:#94a3b8;font-size:11px">'+p+'%</td></tr>';
+        }).join('');
+        return '<div class="panth-pdbg-section-title"><span>'+label+'</span></div>'
+          + '<table class="panth-pdbg-table"><thead><tr><th>Module</th><th>Blocks</th><th>SQL</th><th>Obs</th><th>Other</th><th>Bar</th><th>Time</th><th>%</th></tr></thead><tbody>'+rows+'</tbody></table>';
+      };
+      var u = data.modulesUserland||[], c = data.modulesCore||[];
+      if(!u.length && !c.length) return '<div class="panth-pdbg-empty"><span class="ico">∅</span>Module breakdown not available for this run.</div>';
+      return '<div class="panth-pdbg-toolrow">'
+        + '<input type="text" placeholder="Filter modules..." data-pdbg-filter="table">'
+        + '<button class="panth-pdbg-btn ghost" data-go="overview">'+ico.chevL+' Overview</button>'
+        + '</div>'
+        + (u.length ? renderTbl(u, 'Your modules ('+u.length+') — actionable') : '<div class="panth-pdbg-empty" style="padding:14px"><span style="font-size:11px">No third-party / theme modules contributing measurable time.</span></div>')
+        + (c.length ? renderTbl(c, 'Magento core ('+c.length+') — informational') : '');
+    },
+    bottlenecks: function(){
+      // Userland-only — Magento core findings live in the Core tab.
+      var fs = data.userlandFindings||[];
+      if(!fs.length) {
+        var coreCount = (data.coreFindings||[]).length;
+        return '<div class="panth-pdbg-empty"><span class="ico">✓</span>No bottlenecks in your code. Nice page!'
+          + (coreCount ? '<div style="margin-top:8px;font-size:11px">' + coreCount + ' Magento core finding(s) — see the <a href="#" data-go="core" style="color:#0f172a;font-weight:600">Core tab</a> if curious.</div>' : '')
+          + '</div>';
+      }
+      var html = '<div class="panth-pdbg-toolrow">'
+        + '<input type="text" placeholder="Filter issues..." data-pdbg-filter="issue">'
+        + '<button class="panth-pdbg-btn" data-go="suggestions">View fixes '+ico.chevR+'</button>'
+        + '</div>';
+      html += fs.map(function(f,i){
+        var sqlId = 'isql-'+i;
+        var inv = (f.invocations && f.invocations>1) ? '<span class="stat">×'+f.invocations+' calls</span>' : '';
+        return '<div class="panth-pdbg-issue" data-pdbg-issue>'
+          + '<div class="ihead">'
+          +   '<div class="ititle"><span class="panth-pdbg-sev '+esc(f.severity)+'" style="margin-right:6px">'+esc(f.severity)+'</span>'+esc(f.title)+(f.module?' '+renderModule(f.module):'')+'</div>'
+          +   '<div class="istats"><span class="stat measured">'+fmtMs(f.measured_ms)+'</span>'+inv+(f.timing?renderTiming(f.timing):'')+'<span class="stat saving">−'+fmtMs(f.estimated_savings_ms)+'</span></div>'
+          + '</div>'
+          + '<div class="panth-pdbg-suggestion">'+esc(f.why)+'</div>'
+          + (f.source?'<div class="panth-pdbg-sql" id="'+sqlId+'">'+esc(f.source)+'</div><div style="margin-top:4px;text-align:right"><button class="panth-pdbg-btn tiny ghost" data-copy="'+sqlId+'">'+ico.copy+' Copy SQL</button></div>':'')
+          + renderCallsites(f.callsites)
+          + renderBinds(f.binds)
+          + '<div class="panth-pdbg-fix"><strong>Fix:</strong> '+esc(f.suggestion)+'</div>'
+          + '</div>';
+      }).join('');
+      return html;
+    },
+    suggestions: function(){
+      // Userland-only — fix snippets only matter for code you can change.
+      var fs = data.userlandFindings||[];
+      if(!fs.length) return '<div class="panth-pdbg-empty"><span class="ico">✓</span>Nothing to optimise in your code — go ship something!</div>';
+      var totalSavings = data.totalEstimatedSavings||0;
+      var after = Math.max(0, data.totalMs - totalSavings);
+      var snippet = function(kind){
+        if(kind==='duplicate_query') return "// Cache the resolved set in a request-scoped service\nprivate ?array \$cache = null;\npublic function getOptions(int \$id): array {\n    \$this->cache ??= \$this->repo->getAll();\n    return \$this->cache[\$id] ?? [];\n}";
+        if(kind==='slow_query')      return "// 1) EXPLAIN the query in MySQL CLI\n// 2) Add a composite index on (where_col, join_col)\nALTER TABLE my_table ADD INDEX (col_a, col_b);";
+        if(kind==='slow_block')      return "// In layout XML: enable block_html cache for this block\n<block class=\"...\" name=\"my.block\" cacheable=\"true\">\n  <arguments>\n    <argument name=\"cache_lifetime\" xsi:type=\"number\">3600</argument>\n  </arguments>\n</block>";
+        if(kind==='slow_observer')   return "// Move the heavy work off the synchronous request:\n// 1) Add a queue topic in etc/queue.xml\n// 2) Publish from the observer\n\$this->publisher->publish('my.topic', \$payload);";
+        if(kind==='heavy_module')    return "// Audit the module's blocks for cacheability,\n// observers for sync work that can be queued,\n// and repositories for N+1 patterns.";
+        return '';
+      };
+      var rows = fs.map(function(f,i){
+        var snipId = 'snip-'+i;
+        var snip = snippet(f.kind);
+        return '<div class="panth-pdbg-issue">'
+          + '<div class="ihead">'
+          +   '<div class="ititle"><span class="panth-pdbg-sev '+esc(f.severity)+'" style="margin-right:6px">'+esc(f.severity)+'</span>'+esc(f.title)+(f.module?' '+renderModule(f.module):'')+'</div>'
+          +   '<div class="istats"><span class="stat saving">−'+fmtMs(f.estimated_savings_ms)+'</span></div>'
+          + '</div>'
+          + '<div class="panth-pdbg-suggestion"><strong style="color:#0f172a">Fix:</strong> '+esc(f.suggestion)+'</div>'
+          + (snip ? '<pre class="panth-pdbg-sql" id="'+snipId+'" style="margin-top:8px">'+esc(snip)+'</pre><div style="margin-top:4px;text-align:right"><button class="panth-pdbg-btn tiny ghost" data-copy="'+snipId+'">'+ico.copy+' Copy snippet</button></div>' : '')
+          + '</div>';
+      }).join('');
+      return '<div class="panth-pdbg-cards">'
+        + '<div class="panth-pdbg-card savings"><div class="num">−'+fmtMs(totalSavings)+'</div><div class="lbl">Total estimated savings</div></div>'
+        + '<div class="panth-pdbg-card savings"><div class="num">'+fmtMs(after)+'</div><div class="lbl">Estimated time after fixes</div></div>'
+        + '</div>'
+        + '<div class="panth-pdbg-toolrow"><button class="panth-pdbg-btn ghost" data-go="bottlenecks">'+ico.chevL+' Back to issues</button></div>'
+        + rows;
+    },
+    core: function(){
+      // Magento core findings — informational, not actionable. We surface
+      // them so a developer can see what's going on, but they're collapsed
+      // by default and clearly labelled as not your fault.
+      var fs = data.coreFindings||[];
+      if(!fs.length) return '<div class="panth-pdbg-empty"><span class="ico">∅</span>No Magento core findings on this page.</div>';
+      var html = '<div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:#475569"><strong>About this tab:</strong> these findings originate inside <code>vendor/magento/*</code>. They cost real time but you usually can\'t fix them without forking framework code. Surface them only when triaging a deeper Magento perf issue.</div>';
+      html += '<div class="panth-pdbg-toolrow"><input type="text" placeholder="Filter core findings..." data-pdbg-filter="issue"><button class="panth-pdbg-btn ghost" data-go="bottlenecks">'+ico.chevL+' Your issues</button></div>';
+      html += fs.map(function(f,i){
+        var sqlId = 'csql-'+i;
+        var inv = (f.invocations && f.invocations>1) ? '<span class="stat">×'+f.invocations+' calls</span>' : '';
+        return '<div class="panth-pdbg-issue" data-pdbg-issue style="opacity:.85">'
+          + '<div class="ihead">'
+          +   '<div class="ititle"><span class="panth-pdbg-sev '+esc(f.severity)+'" style="margin-right:6px">'+esc(f.severity)+'</span>'+esc(f.title)+(f.module?' '+renderModule(f.module):'')+'<span class="panth-pdbg-mod" style="background:#fef3c7;color:#92400e;border-color:#fcd34d;margin-left:4px">core</span></div>'
+          +   '<div class="istats"><span class="stat measured">'+fmtMs(f.measured_ms)+'</span>'+inv+(f.timing?renderTiming(f.timing):'')+'</div>'
+          + '</div>'
+          + '<div class="panth-pdbg-suggestion">'+esc(f.why)+'</div>'
+          + (f.source?'<div class="panth-pdbg-sql" id="'+sqlId+'">'+esc(f.source)+'</div><div style="margin-top:4px;text-align:right"><button class="panth-pdbg-btn tiny ghost" data-copy="'+sqlId+'">'+ico.copy+' Copy SQL</button></div>':'')
+          + renderCallsites(f.callsites)
+          + '</div>';
+      }).join('');
+      return html;
+    }
+  };
+
+  var current = 'overview';
+  var setTab = function(name){
+    current = renderers[name] ? name : 'overview';
+    Array.prototype.forEach.call(root.querySelectorAll('.panth-pdbg-tab'), function(b){
+      b.classList.toggle('active', b.getAttribute('data-tab')===current);
+    });
+    body.innerHTML = renderers[current]();
+    body.scrollTop = 0;
+    var inp = body.querySelector('[data-pdbg-filter]');
+    if(inp){
+      inp.addEventListener('input', function(){
+        var q = inp.value.toLowerCase();
+        var mode = inp.getAttribute('data-pdbg-filter');
+        if(mode==='issue'){
+          Array.prototype.forEach.call(body.querySelectorAll('[data-pdbg-issue]'), function(card){
+            card.style.display = card.textContent.toLowerCase().indexOf(q)>=0 ? '' : 'none';
+          });
+        } else {
+          var tb = body.querySelector('table tbody');
+          if(!tb) return;
+          Array.prototype.forEach.call(tb.querySelectorAll('tr'), function(tr){
+            tr.style.display = tr.textContent.toLowerCase().indexOf(q)>=0 ? '' : 'none';
+          });
+        }
+      });
+    }
+  };
+
+  // Event delegation for nav, close, reload, tabs, copy, trail toggle
+  root.addEventListener('click', function(e){
+    var t = e.target.closest('[data-pdbg]');
+    if(t){
+      e.preventDefault();
+      var op = t.getAttribute('data-pdbg');
+      if(op==='open')   panel.classList.add('open');
+      if(op==='close')  panel.classList.remove('open');
+      if(op==='reload') location.reload();
+      return;
+    }
+    var copy = e.target.closest('[data-copy]');
+    if(copy){
+      var node = document.getElementById(copy.getAttribute('data-copy'));
+      if(node) copyToClipboard(node.textContent);
+      return;
+    }
+    var trail = e.target.closest('[data-trail-toggle]');
+    if(trail){
+      var t2 = document.getElementById(trail.getAttribute('data-trail-toggle'));
+      if(t2) t2.classList.toggle('open');
+      return;
+    }
+    var tab = e.target.closest('[data-tab]');
+    if(tab){ setTab(tab.getAttribute('data-tab')); return; }
+    var nav = e.target.closest('[data-go]');
+    if(nav){ setTab(nav.getAttribute('data-go')); return; }
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && panel.classList.contains('open')) panel.classList.remove('open');
+  });
+
+  setTab('overview');
+})();
+</script>

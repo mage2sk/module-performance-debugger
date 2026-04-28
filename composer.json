@@ -1,0 +1,48 @@
+{
+    "name": "mage2kishan/module-performance-debugger",
+    "description": "Production-grade Magento 2 frontend performance debugger and profiler. Tracks block render time, observers, plugins, layout XML, DI resolution, DB queries (slow + duplicate + N+1), memory, and full page timeline. Surfaces a floating storefront toolbar with bottleneck detection, severity scoring, suggested fixes and estimated savings. Supports XLS + PDF report export and per-collector toggles.",
+    "type": "magento2-module",
+    "version": "1.0.0",
+    "license": "proprietary",
+    "keywords": [
+        "magento2",
+        "magento2-module",
+        "performance",
+        "profiler",
+        "debugger",
+        "bottleneck",
+        "n+1",
+        "slow-queries",
+        "panth",
+        "developer-tools"
+    ],
+    "homepage": "https://kishansavaliya.com",
+    "support": {
+        "email": "kishansavaliyakb@gmail.com",
+        "source": "https://kishansavaliya.com"
+    },
+    "authors": [
+        {
+            "name": "Kishan Savaliya",
+            "email": "kishansavaliyakb@gmail.com",
+            "homepage": "https://kishansavaliya.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "~8.1.0||~8.2.0||~8.3.0||~8.4.0",
+        "mage2kishan/module-core": "^1.0",
+        "magento/framework": "^103.0",
+        "magento/module-backend": "^102.0",
+        "magento/module-config": "^101.2",
+        "magento/module-store": "^101.1"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Panth\\PerformanceDebugger\\": ""
+        }
+    }
+}

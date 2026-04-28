@@ -1,0 +1,184 @@
+<?php
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ *
+ * @var \Panth\PerformanceDebugger\Block\Adminhtml\RunGrid $block
+ */
+$runs = $block->getRuns();
+$total = $block->getTotal();
+$page = $block->getPage();
+$pageSize = $block->getPageSize();
+$totalPages = $block->getTotalPages();
+$sort = $block->getSort();
+$dir = $block->getDir();
+$q = $block->getQuery();
+$sevFilter = $block->getMinSeverity();
+$severityClass = function (int $w): string {
+    return ['', 'low', 'medium', 'high', 'critical'][$w] ?? 'low';
+};
+$severityName = function (int $w): string {
+    return ['', 'low', 'medium', 'high', 'critical'][$w] ?? '';
+};
+$colHeader = function (string $column, string $label) use ($block, $sort, $dir) {
+    $arrow = $block->sortIndicator($column);
+    $active = $sort === $column ? ' active' : '';
+    return '<a href="' . $block->escapeUrl($block->sortUrl($column))
+        . '" class="panth-sort' . $active . '">'
+        . $block->escapeHtml($label)
+        . ' <span class="arrow">' . $arrow . '</span></a>';
+};
+
+$first = $total === 0 ? 0 : (($page - 1) * $pageSize + 1);
+$last = min($page * $pageSize, $total);
+?>
+<style>
+.panth-perf-grid{padding:8px}
+.panth-perf-grid h2{margin:0 0 14px;font-size:22px;color:#0f172a}
+.panth-perf-toolbar{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.panth-perf-toolbar form{display:flex;gap:8px;align-items:center;flex-wrap:wrap;flex:1;min-width:0}
+.panth-perf-toolbar input[type=text],.panth-perf-toolbar select{padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;background:#fff;color:#0f172a;min-width:140px}
+.panth-perf-toolbar input[type=text]:focus,.panth-perf-toolbar select:focus{outline:0;border-color:#0f172a;box-shadow:0 0 0 3px rgba(15,23,42,.08)}
+.panth-perf-toolbar input[type=text]{flex:1;min-width:200px}
+.panth-perf-toolbar button.btn{padding:7px 14px;background:#0f172a;color:#fff;border:0;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.panth-perf-toolbar button.btn:hover{background:#1e293b}
+.panth-perf-toolbar a.clear{padding:7px 12px;background:#f1f5f9;color:#475569;border-radius:6px;font-size:11px;text-decoration:none;font-weight:600}
+.panth-perf-toolbar a.clear:hover{background:#e2e8f0;color:#0f172a}
+.panth-perf-toolbar .stats{font-size:12px;color:#64748b;margin-left:auto;white-space:nowrap}
+.panth-perf-grid table{width:100%;border-collapse:collapse;font-size:12px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}
+.panth-perf-grid th,.panth-perf-grid td{padding:9px 12px;border-bottom:1px solid #f1f5f9;text-align:left;vertical-align:top}
+.panth-perf-grid th{background:#f8fafc;font-weight:600;text-transform:uppercase;font-size:10px;color:#64748b;letter-spacing:.05em}
+.panth-perf-grid th a.panth-sort{color:#64748b;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.panth-perf-grid th a.panth-sort:hover{color:#0f172a}
+.panth-perf-grid th a.panth-sort.active{color:#0f172a}
+.panth-perf-grid th a.panth-sort .arrow{font-size:10px;color:#cbd5e1}
+.panth-perf-grid th a.panth-sort.active .arrow{color:#0f172a}
+.panth-perf-grid tr:hover td{background:#fafafa}
+.panth-perf-grid tr:last-child td{border-bottom:0}
+.panth-perf-sev{display:inline-block;font-size:10px;padding:3px 7px;border-radius:5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.panth-perf-sev.critical{background:#dc2626;color:#fff}
+.panth-perf-sev.high{background:#ea580c;color:#fff}
+.panth-perf-sev.medium{background:#facc15;color:#1f2937}
+.panth-perf-sev.low{background:#a7f3d0;color:#065f46}
+.panth-perf-empty{padding:48px 16px;text-align:center;color:#94a3b8;background:#f8fafc;border:1px dashed #e2e8f0;border-radius:10px}
+.panth-perf-actions{white-space:nowrap}
+.panth-perf-actions a{margin-right:8px;font-size:11px;color:#0f172a;font-weight:600}
+.panth-perf-pager{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:10px 12px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;flex-wrap:wrap;gap:10px}
+.panth-perf-pager .nums{display:flex;gap:4px}
+.panth-perf-pager a,.panth-perf-pager span.pg{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:30px;padding:0 8px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;color:#0f172a;text-decoration:none;font-size:12px;font-weight:600}
+.panth-perf-pager a:hover{background:#f1f5f9;border-color:#cbd5e1}
+.panth-perf-pager span.pg.current{background:#0f172a;color:#fff;border-color:#0f172a}
+.panth-perf-pager span.pg.disabled{color:#cbd5e1;background:#f8fafc}
+.panth-perf-pager .info{color:#64748b;font-size:12px}
+.panth-perf-pager select{padding:5px 8px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;background:#fff}
+.panth-perf-url-trunc{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:#64748b}
+</style>
+
+<div class="panth-perf-grid">
+    <h2><?= $block->escapeHtml(__('Profiler Runs')) ?></h2>
+
+    <div class="panth-perf-toolbar">
+        <form method="get" action="<?= $block->escapeUrl($block->getUrl('performancedebugger/run/index')) ?>">
+            <input type="hidden" name="key" value="<?= $block->escapeHtmlAttr($block->getRequest()->getParam('key', '')) ?>">
+            <input type="text" name="q" placeholder="<?= $block->escapeHtmlAttr(__('Search URL or route…')) ?>" value="<?= $block->escapeHtmlAttr($q) ?>">
+            <select name="sev">
+                <option value="0" <?= $sevFilter === 0 ? 'selected' : '' ?>><?= $block->escapeHtml(__('Any severity')) ?></option>
+                <option value="1" <?= $sevFilter === 1 ? 'selected' : '' ?>><?= $block->escapeHtml(__('Low+')) ?></option>
+                <option value="2" <?= $sevFilter === 2 ? 'selected' : '' ?>><?= $block->escapeHtml(__('Medium+')) ?></option>
+                <option value="3" <?= $sevFilter === 3 ? 'selected' : '' ?>><?= $block->escapeHtml(__('High+')) ?></option>
+                <option value="4" <?= $sevFilter === 4 ? 'selected' : '' ?>><?= $block->escapeHtml(__('Critical only')) ?></option>
+            </select>
+            <select name="limit">
+                <?php foreach ([25, 50, 100, 250] as $sz): ?>
+                    <option value="<?= $sz ?>" <?= $pageSize === $sz ? 'selected' : '' ?>><?= $sz ?> / page</option>
+                <?php endforeach; ?>
+            </select>
+            <button type="submit" class="btn"><?= $block->escapeHtml(__('Apply')) ?></button>
+            <?php if ($q !== '' || $sevFilter > 0): ?>
+                <a class="clear" href="<?= $block->escapeUrl($block->getUrl('performancedebugger/run/index')) ?>"><?= $block->escapeHtml(__('Clear')) ?></a>
+            <?php endif; ?>
+        </form>
+        <div class="stats"><?= $block->escapeHtml(__('%1 total runs', number_format($total))) ?></div>
+    </div>
+
+    <?php if (empty($runs)): ?>
+        <div class="panth-perf-empty">
+            <?= $block->escapeHtml(__('No runs match the current filters. Adjust the filters above or load any storefront page from an allowed IP to capture a new run.')) ?>
+        </div>
+    <?php else: ?>
+        <table>
+            <thead>
+                <tr>
+                    <th><?= /* @noEscape */ $colHeader('run_id', __('#')) ?></th>
+                    <th><?= /* @noEscape */ $colHeader('created_at', __('Captured')) ?></th>
+                    <th><?= /* @noEscape */ $colHeader('route', __('Route')) ?></th>
+                    <th><?= /* @noEscape */ $colHeader('url', __('URL')) ?></th>
+                    <th><?= /* @noEscape */ $colHeader('total_time', __('Total ms')) ?></th>
+                    <th><?= /* @noEscape */ $colHeader('db_queries', __('Queries')) ?></th>
+                    <th><?= /* @noEscape */ $colHeader('db_slow', __('Slow')) ?></th>
+                    <th><?= /* @noEscape */ $colHeader('db_duplicates', __('Dupes')) ?></th>
+                    <th><?= /* @noEscape */ $colHeader('bottleneck_count', __('Issues')) ?></th>
+                    <th><?= /* @noEscape */ $colHeader('severity_max', __('Severity')) ?></th>
+                    <th><?= $block->escapeHtml(__('Actions')) ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($runs as $run): ?>
+                    <?php $sevW = (int) $run['severity_max']; $sevClass = $severityClass($sevW); ?>
+                    <tr>
+                        <td><?= (int) $run['run_id'] ?></td>
+                        <td style="white-space:nowrap"><?= $block->escapeHtml($run['created_at']) ?></td>
+                        <td><?= $block->escapeHtml($run['route']) ?></td>
+                        <td><span class="panth-perf-url-trunc" title="<?= $block->escapeHtmlAttr($run['url']) ?>"><?= $block->escapeHtml($run['url']) ?></span></td>
+                        <td><?= $block->escapeHtml(number_format((float) $run['total_time'], 1)) ?></td>
+                        <td><?= (int) $run['db_queries'] ?></td>
+                        <td><?= (int) $run['db_slow'] ?></td>
+                        <td><?= (int) $run['db_duplicates'] ?></td>
+                        <td><?= (int) $run['bottleneck_count'] ?></td>
+                        <td><?php if ($sevW > 0): ?>
+                            <span class="panth-perf-sev <?= $block->escapeHtmlAttr($sevClass) ?>"><?= $block->escapeHtml($severityName($sevW)) ?></span>
+                        <?php endif; ?></td>
+                        <td class="panth-perf-actions">
+                            <a href="<?= $block->escapeUrl($block->getViewUrl((int) $run['run_id'])) ?>"><?= $block->escapeHtml(__('View')) ?></a>
+                            <a href="<?= $block->escapeUrl($block->getXlsUrl((int) $run['run_id'])) ?>"><?= $block->escapeHtml(__('XLS')) ?></a>
+                            <a href="<?= $block->escapeUrl($block->getPdfUrl((int) $run['run_id'])) ?>" target="_blank"><?= $block->escapeHtml(__('PDF')) ?></a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <?php
+        $pagerWindow = 5;
+        $start = max(1, $page - intdiv($pagerWindow, 2));
+        $end   = min($totalPages, $start + $pagerWindow - 1);
+        $start = max(1, $end - $pagerWindow + 1);
+        ?>
+        <div class="panth-perf-pager">
+            <div class="info"><?= $block->escapeHtml(__('Showing %1–%2 of %3', $first, $last, number_format($total))) ?></div>
+            <div class="nums">
+                <?php if ($page > 1): ?>
+                    <a href="<?= $block->escapeUrl($block->gridUrl(['p' => 1])) ?>" title="<?= $block->escapeHtmlAttr(__('First')) ?>">«</a>
+                    <a href="<?= $block->escapeUrl($block->gridUrl(['p' => $page - 1])) ?>" title="<?= $block->escapeHtmlAttr(__('Previous')) ?>">‹</a>
+                <?php else: ?>
+                    <span class="pg disabled">«</span><span class="pg disabled">‹</span>
+                <?php endif; ?>
+
+                <?php for ($i = $start; $i <= $end; $i++): ?>
+                    <?php if ($i === $page): ?>
+                        <span class="pg current"><?= $i ?></span>
+                    <?php else: ?>
+                        <a href="<?= $block->escapeUrl($block->gridUrl(['p' => $i])) ?>"><?= $i ?></a>
+                    <?php endif; ?>
+                <?php endfor; ?>
+
+                <?php if ($page < $totalPages): ?>
+                    <a href="<?= $block->escapeUrl($block->gridUrl(['p' => $page + 1])) ?>" title="<?= $block->escapeHtmlAttr(__('Next')) ?>">›</a>
+                    <a href="<?= $block->escapeUrl($block->gridUrl(['p' => $totalPages])) ?>" title="<?= $block->escapeHtmlAttr(__('Last')) ?>">»</a>
+                <?php else: ?>
+                    <span class="pg disabled">›</span><span class="pg disabled">»</span>
+                <?php endif; ?>
+            </div>
+            <div class="info"><?= $block->escapeHtml(__('Page %1 of %2', $page, $totalPages)) ?></div>
+        </div>
+    <?php endif; ?>
+</div>
