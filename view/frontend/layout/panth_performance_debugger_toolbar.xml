@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ *
+ * Conditional handle added by Observer\AddToolbarLayoutHandle ONLY when
+ * the debugger toolbar should actually render (config flag + IP
+ * allow-list / developer mode). The cacheable="false" here is deliberate
+ * — the toolbar surfaces per-request profiling data and must never be
+ * cached by FPC — but because the handle is opt-in, regular visitor
+ * pages stay fully cacheable.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="before.body.end">
+            <block class="Panth\PerformanceDebugger\Block\Toolbar"
+                   name="panth.performance.debugger.toolbar"
+                   template="Panth_PerformanceDebugger::toolbar.phtml"
+                   cacheable="false"/>
+        </referenceContainer>
+    </body>
+</page>

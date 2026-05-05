@@ -1,12 +1,17 @@
 <?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ *
+ * No-op default layout. The toolbar block is INTENTIONALLY not declared
+ * here — declaring it on the default handle with cacheable="false" used
+ * to break Full Page Cache on every frontend page. The toolbar is now
+ * loaded via the conditional handle `panth_performance_debugger_toolbar`
+ * which `Observer\AddToolbarLayoutHandle` adds only when the toolbar
+ * should actually render (config + IP allow-list / developer mode).
+ */
+-->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-    <body>
-        <referenceContainer name="before.body.end">
-            <block class="Panth\PerformanceDebugger\Block\Toolbar"
-                   name="panth.performance.debugger.toolbar"
-                   template="Panth_PerformanceDebugger::toolbar.phtml"
-                   cacheable="false"/>
-        </referenceContainer>
-    </body>
+    <body/>
 </page>

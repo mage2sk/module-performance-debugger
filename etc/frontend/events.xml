@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ *
+ * Observe layout_load_before so we can opt-in the
+ * `panth_performance_debugger_toolbar` handle (cacheable="false") only
+ * for requests that actually show the toolbar — keeps regular visitor
+ * pages fully FPC-cacheable.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="layout_load_before">
+        <observer name="panth_performance_debugger_add_toolbar_handle"
+                  instance="Panth\PerformanceDebugger\Observer\AddToolbarLayoutHandle"/>
+    </event>
+</config>
