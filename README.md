@@ -283,7 +283,7 @@ The frontend toolbar is **pure vanilla**:
 Tested on:
 - **Hyvä Theme 1.4.x** with Tailwind + Alpine.js — toolbar renders, Alpine doesn't notice us
 - **Luma** — toolbar renders, KnockoutJS doesn't notice us
-- **Breeze (Swissup)** — toolbar renders, no jQuery conflict
+- **Breeze-style themes** — toolbar renders, no jQuery conflict
 - **Custom themes** based on `Magento/blank` — works out of the box
 
 The Hyvä compat-fallback mechanism doesn't interfere because it only redirects template lookups for *registered* compat modules — we don't register, our `view/frontend/templates/toolbar.phtml` loads directly from the module.
@@ -302,7 +302,7 @@ The Hyvä compat-fallback mechanism doesn't interfere because it only redirects 
 | MariaDB | 10.4+ |
 | Hyvä Theme | 1.3+ (no companion module needed) |
 | Luma Theme | Native support |
-| Breeze (Swissup) | Native support |
+| Breeze-style themes | Native support |
 
 Tested on:
 - Magento 2.4.8-p2 with PHP 8.3 + Hyvä Theme 1.4.5 (primary dev environment)
