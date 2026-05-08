@@ -1,13 +1,12 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="default">
+        <job name="panth_performancedebugger_send_heartbeat" instance="Panth\PerformanceDebugger\Cron\SendHeartbeat" method="execute">
+            <schedule>25 4 * * *</schedule>
+        </job>
         <job name="panth_perf_cleanup" instance="Panth\PerformanceDebugger\Cron\CleanupRuns" method="execute">
             <schedule>0 * * * *</schedule>
         </job>
         <!-- Daily heartbeat — conditional inside Cron\SendHeartbeat. -->
-        <job name="panth_performancedebugger_send_heartbeat"
-             instance="Panth\PerformanceDebugger\Cron\SendHeartbeat" method="execute">
-            <schedule>25 4 * * *</schedule>
-        </job>
     </group>
 </config>

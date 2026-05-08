@@ -2,7 +2,7 @@
     "name": "mage2kishan/module-performance-debugger",
     "description": "Production-grade Magento 2 frontend performance debugger and profiler. Tracks block render time, observers, plugins, layout XML, DI resolution, DB queries (slow + duplicate + N+1), memory, and full page timeline. Surfaces a floating storefront toolbar with bottleneck detection, severity scoring, suggested fixes and estimated savings. Supports XLS + PDF report export and per-collector toggles.",
     "type": "magento2-module",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "license": "proprietary",
     "keywords": [
         "magento2",
