@@ -4,5 +4,10 @@
         <job name="panth_perf_cleanup" instance="Panth\PerformanceDebugger\Cron\CleanupRuns" method="execute">
             <schedule>0 * * * *</schedule>
         </job>
+        <!-- Daily heartbeat — conditional inside Cron\SendHeartbeat. -->
+        <job name="panth_performancedebugger_send_heartbeat"
+             instance="Panth\PerformanceDebugger\Cron\SendHeartbeat" method="execute">
+            <schedule>25 4 * * *</schedule>
+        </job>
     </group>
 </config>
