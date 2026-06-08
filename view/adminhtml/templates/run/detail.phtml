@@ -68,7 +68,7 @@ $aggregates = $summary['aggregates'] ?? [];
 
     <h2><?= $block->escapeHtml(__('Profiler Run #%1', $run['run_id'])) ?></h2>
     <div class="meta">
-        <strong><?= $block->escapeHtml($run['route']) ?></strong> — <?= $block->escapeHtml($run['url']) ?> · <?= $block->escapeHtml($run['created_at']) ?>
+        <strong><?= $block->escapeHtml($run['route']) ?></strong> - <?= $block->escapeHtml($run['url']) ?> · <?= $block->escapeHtml($run['created_at']) ?>
     </div>
 
     <?php $totalSavings = array_sum(array_column($findings, 'estimated_savings_ms')); ?>
@@ -88,7 +88,7 @@ $aggregates = $summary['aggregates'] ?? [];
     <?php if (empty($findings)): ?>
         <div class="panth-perf-empty"><?= $block->escapeHtml(__('No bottlenecks in your code for this run. Nice page!')) ?>
         <?php if (!empty($coreFindings)): ?>
-            <div style="margin-top:8px;font-size:12px;color:#64748b"><?= $block->escapeHtml(__('%1 Magento core finding(s) below — informational only.', count($coreFindings))) ?></div>
+            <div style="margin-top:8px;font-size:12px;color:#64748b"><?= $block->escapeHtml(__('%1 Magento core finding(s) below - informational only.', count($coreFindings))) ?></div>
         <?php endif; ?>
         </div>
     <?php else: ?>
@@ -135,7 +135,7 @@ $aggregates = $summary['aggregates'] ?? [];
     <?php endif; ?>
 
     <?php if (!empty($coreFindings)): ?>
-        <h3 style="margin-top:24px"><?= $block->escapeHtml(__('Magento core findings (%1) — informational only', count($coreFindings))) ?></h3>
+        <h3 style="margin-top:24px"><?= $block->escapeHtml(__('Magento core findings (%1) - informational only', count($coreFindings))) ?></h3>
         <div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#475569">
             <?= $block->escapeHtml(__('These findings originate inside vendor/magento/*. They cost real time but you usually cannot fix them without forking framework code. Surface them only when triaging deeper Magento perf issues.')) ?>
         </div>

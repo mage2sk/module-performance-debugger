@@ -4,7 +4,7 @@
  *
  * Storefront performance debugger toolbar.
  *
- * Vanilla HTML/CSS/JS — zero dependency on jQuery, RequireJS, KnockoutJS or
+ * Vanilla HTML/CSS/JS - zero dependency on jQuery, RequireJS, KnockoutJS or
  * Alpine.js. The same markup runs identically in Hyva, Luma, Breeze and any
  * custom Magento 2 theme. CSS is namespaced under .panth-pdbg- so it cannot
  * collide with theme styles.
@@ -213,7 +213,7 @@ $elemId = 'panth-pdbg-' . substr(sha1($payload), 0, 8);
     findings: (data.userlandFindings||[]).length,
     coreFindings: (data.coreFindings||[]).length
   };
-  // Worst severity is computed across USERLAND only — core findings should
+  // Worst severity is computed across USERLAND only - core findings should
   // never raise the launcher to red since they're not actionable.
   worst = (data.userlandFindings||[]).reduce(function(acc,f){
     var w={low:1,medium:2,high:3,critical:4}[f.severity]||0;
@@ -243,7 +243,7 @@ $elemId = 'panth-pdbg-' . substr(sha1($payload), 0, 8);
 
   // ---------- Markup ----------
   var html = ''
-    + '<div class="panth-pdbg-launcher '+launcherCls+'" data-pdbg="open" title="Open Performance Debugger — '+counts.findings+' your issues, '+counts.coreFindings+' core findings">'
+    + '<div class="panth-pdbg-launcher '+launcherCls+'" data-pdbg="open" title="Open Performance Debugger - '+counts.findings+' your issues, '+counts.coreFindings+' core findings">'
     +   ico.bolt + '<span>'+fmtMs(data.totalMs)+' · '+counts.query+' SQL · '+counts.findings+' your issues'+(counts.coreFindings?' (+'+counts.coreFindings+' core)':'')+'</span>'
     + '</div>'
     + '<div class="panth-pdbg-panel" data-pdbg-panel role="dialog" aria-label="Performance Debugger">'
@@ -252,7 +252,7 @@ $elemId = 'panth-pdbg-' . substr(sha1($payload), 0, 8);
     +       '<div class="hlogo">'+ico.bolt+'</div>'
     +       '<div class="htext">'
     +         '<h3>Performance Debugger</h3>'
-    +         '<div class="meta"><strong>'+esc(data.route||'(no-route)')+'</strong> — '+esc(data.url)+'</div>'
+    +         '<div class="meta"><strong>'+esc(data.route||'(no-route)')+'</strong> - '+esc(data.url)+'</div>'
     +       '</div>'
     +     '</div>'
     +     '<button class="panth-pdbg-close" data-pdbg="close" aria-label="Close">'+ico.close+'</button>'
@@ -264,7 +264,7 @@ $elemId = 'panth-pdbg-' . substr(sha1($payload), 0, 8);
     +     '<button class="panth-pdbg-tab" data-tab="modules" role="tab">'+ico.box+'<span>Modules</span></button>'
     +     '<button class="panth-pdbg-tab" data-tab="bottlenecks" role="tab">'+ico.alert+'<span>Issues</span>'+(counts.findings?'<span class="badge crit">'+counts.findings+'</span>':'')+'</button>'
     +     '<button class="panth-pdbg-tab" data-tab="suggestions" role="tab">'+ico.bulb+'<span>Fix it</span></button>'
-    +     '<button class="panth-pdbg-tab" data-tab="core" role="tab" title="Magento core findings — informational only">⚙ <span>Core</span>'+(counts.coreFindings?'<span class="badge">'+counts.coreFindings+'</span>':'')+'</button>'
+    +     '<button class="panth-pdbg-tab" data-tab="core" role="tab" title="Magento core findings - informational only">⚙ <span>Core</span>'+(counts.coreFindings?'<span class="badge">'+counts.coreFindings+'</span>':'')+'</button>'
     +   '</div>'
     +   '<div class="panth-pdbg-body" data-pdbg-body></div>'
     +   '<div class="panth-pdbg-foot">'
@@ -317,7 +317,7 @@ $elemId = 'panth-pdbg-' . substr(sha1($payload), 0, 8);
       var totalSavings = data.totalEstimatedSavings||0;
       var after = Math.max(0, data.totalMs - totalSavings);
       var card = function(num,lbl,cls){ cls=cls?' '+cls:''; return '<div class="panth-pdbg-card'+cls+'"><div class="num">'+num+'</div><div class="lbl">'+lbl+'</div></div>'; };
-      // Userland-only — core findings are informational and live in the Core tab.
+      // Userland-only - core findings are informational and live in the Core tab.
       var userland = data.userlandFindings||[];
       var crit = userland.filter(function(f){return f.severity==='critical'||f.severity==='high';}).length;
       var topFindings = userland.slice(0,5);
@@ -335,7 +335,7 @@ $elemId = 'panth-pdbg-' . substr(sha1($payload), 0, 8);
       } else {
         fHtml = '<div class="panth-pdbg-empty"><span class="ico">✓</span>No bottlenecks detected. Nice page!</div>';
       }
-      // Module breakdown — userland only on Overview (Core has its own tab).
+      // Module breakdown - userland only on Overview (Core has its own tab).
       var mHtml = '';
       var topMods = (data.modulesUserland||[]).slice(0,5);
       if(topMods.length){
@@ -444,16 +444,16 @@ $elemId = 'panth-pdbg-' . substr(sha1($payload), 0, 8);
         + '<input type="text" placeholder="Filter modules..." data-pdbg-filter="table">'
         + '<button class="panth-pdbg-btn ghost" data-go="overview">'+ico.chevL+' Overview</button>'
         + '</div>'
-        + (u.length ? renderTbl(u, 'Your modules ('+u.length+') — actionable') : '<div class="panth-pdbg-empty" style="padding:14px"><span style="font-size:11px">No third-party / theme modules contributing measurable time.</span></div>')
-        + (c.length ? renderTbl(c, 'Magento core ('+c.length+') — informational') : '');
+        + (u.length ? renderTbl(u, 'Your modules ('+u.length+') - actionable') : '<div class="panth-pdbg-empty" style="padding:14px"><span style="font-size:11px">No third-party / theme modules contributing measurable time.</span></div>')
+        + (c.length ? renderTbl(c, 'Magento core ('+c.length+') - informational') : '');
     },
     bottlenecks: function(){
-      // Userland-only — Magento core findings live in the Core tab.
+      // Userland-only - Magento core findings live in the Core tab.
       var fs = data.userlandFindings||[];
       if(!fs.length) {
         var coreCount = (data.coreFindings||[]).length;
         return '<div class="panth-pdbg-empty"><span class="ico">✓</span>No bottlenecks in your code. Nice page!'
-          + (coreCount ? '<div style="margin-top:8px;font-size:11px">' + coreCount + ' Magento core finding(s) — see the <a href="#" data-go="core" style="color:#0f172a;font-weight:600">Core tab</a> if curious.</div>' : '')
+          + (coreCount ? '<div style="margin-top:8px;font-size:11px">' + coreCount + ' Magento core finding(s) - see the <a href="#" data-go="core" style="color:#0f172a;font-weight:600">Core tab</a> if curious.</div>' : '')
           + '</div>';
       }
       var html = '<div class="panth-pdbg-toolrow">'
@@ -478,9 +478,9 @@ $elemId = 'panth-pdbg-' . substr(sha1($payload), 0, 8);
       return html;
     },
     suggestions: function(){
-      // Userland-only — fix snippets only matter for code you can change.
+      // Userland-only - fix snippets only matter for code you can change.
       var fs = data.userlandFindings||[];
-      if(!fs.length) return '<div class="panth-pdbg-empty"><span class="ico">✓</span>Nothing to optimise in your code — go ship something!</div>';
+      if(!fs.length) return '<div class="panth-pdbg-empty"><span class="ico">✓</span>Nothing to optimise in your code - go ship something!</div>';
       var totalSavings = data.totalEstimatedSavings||0;
       var after = Math.max(0, data.totalMs - totalSavings);
       var snippet = function(kind){
@@ -511,7 +511,7 @@ $elemId = 'panth-pdbg-' . substr(sha1($payload), 0, 8);
         + rows;
     },
     core: function(){
-      // Magento core findings — informational, not actionable. We surface
+      // Magento core findings - informational, not actionable. We surface
       // them so a developer can see what's going on, but they're collapsed
       // by default and clearly labelled as not your fault.
       var fs = data.coreFindings||[];
