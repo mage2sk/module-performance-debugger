@@ -1,7 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Observer;
@@ -14,18 +11,6 @@ use Magento\Framework\HTTP\PhpEnvironment\RemoteAddress;
 use Panth\PerformanceDebugger\Helper\Config;
 use Panth\PerformanceDebugger\Service\Profiler;
 
-/**
- * Adds the `panth_performance_debugger_toolbar` layout handle (which
- * registers the toolbar block with cacheable="false") only when the
- * toolbar should actually surface for this request:
- *
- *   - module enabled AND show_toolbar = 1, AND
- *   - profiler reports active for this request, AND
- *   - either developer mode OR client IP in the allow-list (or `*`).
- *
- * Keeps the cacheable="false" attribute scoped to dev/admin requests so
- * regular visitor pages remain fully FPC-cacheable.
- */
 class AddToolbarLayoutHandle implements ObserverInterface
 {
     public function __construct(
@@ -51,7 +36,6 @@ class AddToolbarLayoutHandle implements ObserverInterface
         try {
             $layout->getUpdate()->addHandle('panth_performance_debugger_toolbar');
         } catch (\Throwable) {
-            // Never break the page; silently fail.
         }
     }
 
@@ -78,7 +62,6 @@ class AddToolbarLayoutHandle implements ObserverInterface
                 return true;
             }
         } catch (\Throwable) {
-            // mode not yet set — fall through to IP check
         }
 
         $remote = (string) $this->remoteAddress->getRemoteAddress();

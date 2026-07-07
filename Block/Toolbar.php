@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
-
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Block;
@@ -13,15 +9,6 @@ use Panth\PerformanceDebugger\Helper\Config;
 use Panth\PerformanceDebugger\Service\BottleneckAnalyzer;
 use Panth\PerformanceDebugger\Service\Profiler;
 
-/**
- * Storefront toolbar block.
- *
- * Pure vanilla HTML/JS/CSS — no jQuery, RequireJS, or Alpine dependency.
- * Works inside Hyva, Luma, Breeze, or any custom theme's `before.body.end`.
- *
- * Visibility is gated by Config (enabled + show_toolbar + IP allow-list /
- * developer mode). Returns '' otherwise so the block leaves zero markup.
- */
 class Toolbar extends Template
 {
     protected $_template = 'Panth_PerformanceDebugger::toolbar.phtml';
@@ -52,7 +39,6 @@ class Toolbar extends Template
                 return true;
             }
         } catch (\Throwable) {
-            // mode not yet set — fall through to IP check
         }
         $remote = (string) $this->remoteAddress->getRemoteAddress();
         return $remote !== '' && in_array($remote, $allowed, true);
@@ -67,8 +53,6 @@ class Toolbar extends Template
 
         $byKind = [];
         foreach ($events as $e) {
-            // Promote callsite summary into a top-level field so the toolbar
-            // doesn't need to dig into meta to render `file:line` for every row.
             if (!isset($e['origin']) && !empty($e['meta']['callsite']['summary'])) {
                 $e['origin'] = $e['meta']['callsite']['summary'];
             } elseif (!isset($e['origin'])) {
@@ -90,7 +74,6 @@ class Toolbar extends Template
         $modulesCore = array_values(array_filter($modulesAll, fn($m) => str_starts_with((string) $m['module'], 'Magento_')));
         $totalMs = round($this->profiler->totalElapsedMs(), 2);
 
-        // Split findings + savings counters so the UI can foreground userland.
         $userlandFindings = array_values(array_filter($findings, fn($f) => empty($f['is_core'])));
         $coreFindings = array_values(array_filter($findings, fn($f) => !empty($f['is_core'])));
 
@@ -106,7 +89,7 @@ class Toolbar extends Template
             'userlandFindings' => $userlandFindings,
             'coreFindings' => $coreFindings,
             'duplicates' => array_slice($duplicates, 0, 20),
-            'modules' => $modulesUserland, // legacy field — kept for any external consumer; userland-only
+            'modules' => $modulesUserland,
             'modulesUserland' => $modulesUserland,
             'modulesCore' => $modulesCore,
             'totalEstimatedSavings' => round($this->analyzer->totalEstimatedSavings($userlandFindings), 2),
@@ -163,11 +146,11 @@ class Toolbar extends Template
             return null;
         }
         $candidate = (string) $candidate;
-        // Vendor_Module::path/template.phtml — Magento template-resolution syntax.
+
         if (preg_match('#^([A-Z][a-zA-Z0-9]+)_([A-Z][a-zA-Z0-9]+)::#', $candidate, $m)) {
             return $m[1] . '_' . $m[2];
         }
-        // Vendor\\Module\\... or Vendor/Module/... fully-qualified names / paths.
+
         if (preg_match('#^([A-Z][a-zA-Z0-9]+)[\\\\/]([A-Z][a-zA-Z0-9]+)#', $candidate, $m)) {
             return $m[1] . '_' . $m[2];
         }

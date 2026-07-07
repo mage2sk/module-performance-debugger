@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
-
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Service;
@@ -12,14 +8,6 @@ use Magento\Framework\Math\Random;
 use Magento\Store\Model\StoreManagerInterface;
 use Panth\PerformanceDebugger\Helper\Config;
 
-/**
- * Singleton profiler that holds the live in-memory recording for the current request.
- *
- * Collectors push events here via record(); the toolbar/persistence layer reads
- * the resulting buffer via getEvents()/getSummary().
- *
- * Ms are wall-clock milliseconds derived from microtime(true).
- */
 class Profiler
 {
     private bool $started = false;

@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
-
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Helper;
@@ -10,9 +6,6 @@ namespace Panth\PerformanceDebugger\Helper;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
 
-/**
- * Config accessor — single source of truth for performance_debugger/* settings.
- */
 class Config
 {
     public const XML_PATH_PREFIX = 'performance_debugger/';

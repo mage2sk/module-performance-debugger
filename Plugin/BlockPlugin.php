@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
-
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Plugin;
@@ -11,12 +7,6 @@ use Magento\Framework\View\Element\AbstractBlock;
 use Panth\PerformanceDebugger\Helper\Config;
 use Panth\PerformanceDebugger\Service\Profiler;
 
-/**
- * Times each block render (toHtml).
- *
- * Records block name, template path, class, and produced HTML byte length.
- * Excludes our own toolbar block to avoid recursion noise.
- */
 class BlockPlugin
 {
     public function __construct(

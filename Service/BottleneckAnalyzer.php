@@ -1,29 +1,15 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
-
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Service;
 
 use Panth\PerformanceDebugger\Helper\Config;
 
-/**
- * Pattern-detects bottlenecks across captured profiler data.
- *
- * Each finding includes:
- *   id, kind, severity (low|medium|high|critical), title, source,
- *   measured (ms), suggestion, estimated_savings_ms.
- *
- * Estimated savings are deliberately conservative — they assume realistic
- * fixes (cache, query merge, lazy load) recover 60–80% of the wasted time.
- */
 class BottleneckAnalyzer
 {
-    private const SAVINGS_FACTOR_QUERY = 0.85;     // caching / merging
-    private const SAVINGS_FACTOR_BLOCK = 0.70;     // block cache / lazy
-    private const SAVINGS_FACTOR_OBSERVER = 0.60;  // refactor / debounce
+    private const SAVINGS_FACTOR_QUERY = 0.85;
+    private const SAVINGS_FACTOR_BLOCK = 0.70;
+    private const SAVINGS_FACTOR_OBSERVER = 0.60;
     private const SAVINGS_FACTOR_PLUGIN = 0.50;
     private const SAVINGS_FACTOR_LAYOUT = 0.40;
 
@@ -155,9 +141,6 @@ class BottleneckAnalyzer
             }
         }
 
-        // Tag each finding with userland classification + the most-relevant
-        // userland frame (when available). This drives the toolbar's split
-        // between "Issues" (userland — actionable) and "Core" (informational).
         foreach ($findings as &$f) {
             $f['is_core'] = $this->isCoreFinding($f);
             $userFrame = $this->userlandFrame($f['callsites'] ?? []);
@@ -168,7 +151,6 @@ class BottleneckAnalyzer
         unset($f);
 
         usort($findings, function ($a, $b) {
-            // Userland findings always rank above core ones, then severity, then savings.
             return ($a['is_core'] ? 1 : 0) <=> ($b['is_core'] ? 1 : 0)
                 ?: $this->severityWeight($b['severity']) <=> $this->severityWeight($a['severity'])
                 ?: $b['estimated_savings_ms'] <=> $a['estimated_savings_ms'];
@@ -250,9 +232,6 @@ class BottleneckAnalyzer
         return $groups;
     }
 
-    /**
-     * Compute min/avg/max from a list of per-call durations (ms).
-     */
     private function timingStats(array $durations): array
     {
         if (empty($durations)) {
@@ -266,11 +245,6 @@ class BottleneckAnalyzer
         ];
     }
 
-    /**
-     * Sample distinct bind values across grouped query invocations. For an N+1
-     * pattern this surfaces "called with 14 different :option_id values: 1, 2, 3, ..."
-     * which is gold for diagnosis.
-     */
     private function sampleBinds(array $bindList): array
     {
         if (empty($bindList)) {
@@ -291,7 +265,7 @@ class BottleneckAnalyzer
         foreach ($byKey as $key => $values) {
             $unique = array_values(array_unique($values));
             if (count($unique) <= 1) {
-                continue; // not interesting if always the same value
+                continue;
             }
             $out[] = [
                 'name' => $key,
@@ -304,11 +278,6 @@ class BottleneckAnalyzer
         return array_slice($out, 0, 4);
     }
 
-    /**
-     * Best-guess Magento module from a callable / file path. Returns strings
-     * like "Magento_ConfigurableProduct", "Magento_Framework", "Hyva_Theme",
-     * "Panth_FilterSeo", or null when nothing recognisable is found.
-     */
     private function moduleFromCallsite(?array $callsite): ?string
     {
         if (!$callsite) {
@@ -332,15 +301,6 @@ class BottleneckAnalyzer
         return null;
     }
 
-    /**
-     * Walk a callsite trail and return the FIRST userland frame, i.e. the
-     * earliest call originating from app/code, app/design, or a non-Magento
-     * vendor. Returns null when the entire trail is inside Magento core.
-     *
-     * This is what makes the report actionable: when the same query was fired
-     * by a userland template/block, we surface that frame instead of the deep
-     * core method that issued the SQL.
-     */
     public function userlandFrame(array $callsites): ?array
     {
         foreach ($callsites as $cs) {
@@ -353,18 +313,6 @@ class BottleneckAnalyzer
         return null;
     }
 
-    /**
-     * Classify a finding as core (true) or userland (false).
-     *
-     * Decision matrix:
-     *   - Query findings: userland if ANY frame in any callsite is in user code.
-     *   - Block findings: userland if the template path is a theme override
-     *     (app/design/frontend/...) OR the block class belongs to a non-Magento
-     *     module.
-     *   - Observer findings: userland if any registered observer is non-Magento;
-     *     since we only track event names, fall back to module label parsing.
-     *   - Heavy module findings: userland if module name doesn't start with Magento_.
-     */
     public function isCoreFinding(array $finding): bool
     {
         $module = (string) ($finding['module'] ?? '');
@@ -377,17 +325,14 @@ class BottleneckAnalyzer
             if (str_starts_with($source, 'app/design/') || str_contains($source, '/app/design/')) {
                 return false;
             }
-            // Template paths use Vendor_Module::path/template.phtml syntax.
+
             if (preg_match('#^([A-Z][a-zA-Z0-9]+)_([A-Z][a-zA-Z0-9]+)::#', $source, $m)) {
                 return $m[1] === 'Magento';
             }
-            // Source may also be a class name like Magento\\Foo\\Bar.
+
             return str_starts_with($module, 'Magento_') || str_starts_with($source, 'Magento\\');
         }
         if ($finding['kind'] === 'slow_observer') {
-            // Without per-observer instrumentation we only know the event
-            // name, not who handles it. Treat as userland by default — at
-            // least one of the observers may be an extension.
             return false;
         }
         return str_starts_with($module, 'Magento_');
@@ -410,11 +355,6 @@ class BottleneckAnalyzer
         return false;
     }
 
-    /**
-     * Reduces a list of per-event callsites into distinct sites with a count.
-     * Result: [['summary' => 'Foo\\Bar::baz (app/.../Bar.php:42)', 'count' => 9, 'trail' => [...]], ...]
-     * sorted by count desc.
-     */
     private function aggregateCallsites(array $callsites): array
     {
         $bins = [];

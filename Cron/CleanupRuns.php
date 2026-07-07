@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
-
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Cron;
@@ -10,10 +6,6 @@ namespace Panth\PerformanceDebugger\Cron;
 use Magento\Framework\App\ResourceConnection;
 use Panth\PerformanceDebugger\Helper\Config;
 
-/**
- * Hourly cleanup. Removes runs older than configured retention.
- * Cascade FK on the events table drops attached events automatically.
- */
 class CleanupRuns
 {
     public function __construct(

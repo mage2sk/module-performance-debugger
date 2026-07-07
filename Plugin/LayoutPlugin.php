@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
-
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Plugin;
@@ -11,9 +7,6 @@ use Magento\Framework\View\LayoutInterface;
 use Panth\PerformanceDebugger\Helper\Config;
 use Panth\PerformanceDebugger\Service\Profiler;
 
-/**
- * Times layout XML loading and element generation phases.
- */
 class LayoutPlugin
 {
     public function __construct(

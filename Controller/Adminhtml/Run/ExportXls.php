@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
-
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Controller\Adminhtml\Run;
@@ -16,13 +12,6 @@ use Magento\Framework\Convert\ExcelFactory;
 use Panth\PerformanceDebugger\Helper\Config;
 use Panth\PerformanceDebugger\Model\RunRepository;
 
-/**
- * Streams an Excel-compatible SpreadsheetML file built from a profiler run.
- *
- * Magento\Framework\Convert\Excel emits Microsoft's XML Spreadsheet 2003
- * format. Excel and LibreOffice both open .xls files in this format
- * natively without any third-party PHP library on the server.
- */
 class ExportXls extends Action
 {
     public const ADMIN_RESOURCE = 'Panth_PerformanceDebugger::export';

@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
-
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Model;
@@ -10,12 +6,6 @@ namespace Panth\PerformanceDebugger\Model;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Serialize\SerializerInterface;
 
-/**
- * Read-only repository for persisted runs and their events.
- *
- * Used by the admin grid + run-detail view + export controllers. Returns
- * plain arrays — there is no need for the full AbstractModel lifecycle here.
- */
 class RunRepository
 {
     public function __construct(
@@ -34,16 +24,6 @@ class RunRepository
         return $connection->fetchAll($select);
     }
 
-    /**
-     * Server-side paged + sorted + filtered runs query.
-     *
-     * Filters supported (all optional, all combined with AND):
-     *   - q: substring match across url + route
-     *   - severity: minimum severity_max (1=low … 4=critical)
-     *
-     * Sort columns are validated against an allow-list to keep the SQL safe.
-     * Returns ['rows' => array, 'total' => int].
-     */
     public function getPaged(
         int $page = 1,
         int $pageSize = 50,

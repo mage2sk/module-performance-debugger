@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
-
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Block\Adminhtml;
@@ -88,11 +84,6 @@ class RunGrid extends Template
         return $size > 0 ? (int) ceil($total / $size) : 1;
     }
 
-    /**
-     * Build a URL to this same grid with overridden params (page, sort, etc.).
-     * Always preserves any unspecified existing param so click-toggling sort
-     * doesn't drop the active filter or page size.
-     */
     public function gridUrl(array $overrides = []): string
     {
         $current = [
@@ -104,7 +95,7 @@ class RunGrid extends Template
             'sev' => $this->getMinSeverity(),
         ];
         $merged = array_merge($current, $overrides);
-        // Drop empty values to keep URLs clean.
+
         foreach ($merged as $k => $v) {
             if ($v === '' || $v === null || $v === 0 || $v === '0') {
                 unset($merged[$k]);

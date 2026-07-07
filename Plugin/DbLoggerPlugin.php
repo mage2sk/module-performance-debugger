@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
-
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Plugin;
@@ -11,15 +7,6 @@ use Magento\Framework\DB\LoggerInterface;
 use Panth\PerformanceDebugger\Helper\Config;
 use Panth\PerformanceDebugger\Service\Profiler;
 
-/**
- * Hooks Magento\Framework\DB\LoggerInterface to record per-query timing.
- *
- * Magento calls startTimer() before each adapter operation and logStats() after.
- * We capture both to compute duration without disrupting the underlying logger.
- *
- * SQL is fingerprinted (numbers/strings stripped) to detect duplicate / N+1
- * patterns even when bound parameters differ.
- */
 class DbLoggerPlugin
 {
     private float $timer = 0.0;
@@ -66,13 +53,6 @@ class DbLoggerPlugin
         );
     }
 
-    /**
-     * Capture the first user-code frame above the DB layer.
-     *
-     * Skips Zend_Db / Magento DB framework / interceptor / closure frames so the
-     * caller-of-interest (the actual ResourceModel or Repository) bubbles to the
-     * top. Returns an array with summary (file:line) plus a short trail.
-     */
     private function captureCallsite(): array
     {
         $bt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 30);

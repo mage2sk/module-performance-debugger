@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
-
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Plugin;
@@ -11,9 +7,6 @@ use Magento\Framework\App\FrontControllerInterface;
 use Magento\Framework\App\RequestInterface;
 use Panth\PerformanceDebugger\Service\Profiler;
 
-/**
- * Records controller dispatch duration as a single 'controller' event.
- */
 class FrontControllerPlugin
 {
     public function __construct(

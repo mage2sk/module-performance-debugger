@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
-
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Model;
@@ -13,13 +9,6 @@ use Panth\PerformanceDebugger\Helper\Config;
 use Panth\PerformanceDebugger\Service\BottleneckAnalyzer;
 use Panth\PerformanceDebugger\Service\Profiler;
 
-/**
- * Writes a completed profiler run + its events to panth_perf_run / panth_perf_run_event.
- *
- * Uses raw connection insert/insertMultiple instead of the AbstractModel save loop
- * to keep the per-event overhead minimal — a profiled page can produce thousands
- * of events.
- */
 class RunPersister
 {
     public function __construct(

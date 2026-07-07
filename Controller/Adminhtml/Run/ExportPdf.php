@@ -1,8 +1,4 @@
 <?php
-/**
- * Copyright © Panth Infotech. All rights reserved.
- */
-
 declare(strict_types=1);
 
 namespace Panth\PerformanceDebugger\Controller\Adminhtml\Run;
@@ -15,14 +11,6 @@ use Magento\Framework\Controller\ResultInterface;
 use Panth\PerformanceDebugger\Helper\Config;
 use Panth\PerformanceDebugger\Model\RunRepository;
 
-/**
- * Generates a print-ready HTML report.
- *
- * The page ships with print CSS and an inline auto-print script so the
- * browser's native "Save as PDF" produces a clean PDF without requiring a
- * server-side PDF library. Honest tradeoff: no PHP PDF dependency to
- * maintain, supports any future Magento PHP version.
- */
 class ExportPdf extends Action
 {
     public const ADMIN_RESOURCE = 'Panth_PerformanceDebugger::export';
@@ -48,8 +36,7 @@ class ExportPdf extends Action
         $events = $this->repository->getEvents($runId);
         $summary = $run['summary_decoded'] ?? [];
         $allFindings = $summary['findings'] ?? [];
-        // Userland findings drive the report; core findings are appended at the
-        // end of the bottlenecks section as informational-only.
+
         $findings = array_values(array_filter($allFindings, fn($f) => empty($f['is_core'])));
         $coreFindings = array_values(array_filter($allFindings, fn($f) => !empty($f['is_core'])));
         $aggregates = $summary['aggregates'] ?? [];
@@ -131,7 +118,6 @@ class ExportPdf extends Action
         $totalMs = (float) $run['total_time'];
         $findingsCount = count($findings);
 
-        // ---------- Findings: rich card for each ----------
         $findingsHtml = '';
         if (empty($findings)) {
             $findingsHtml = '<div class="empty">✓ No bottlenecks detected for this run.</div>';
@@ -205,7 +191,6 @@ class ExportPdf extends Action
             }
         }
 
-        // ---------- Heaviest modules table — split userland vs core ----------
         $userlandMods = array_values(array_filter($modules, fn($m) => !str_starts_with((string) $m['module'], 'Magento_')));
         $coreMods     = array_values(array_filter($modules, fn($m) => str_starts_with((string) $m['module'], 'Magento_')));
         $renderModTable = function (array $rows) use ($h): string {
@@ -235,7 +220,6 @@ class ExportPdf extends Action
             $modulesHtml .= '<h3 style="font-size:12px;color:#64748b;margin:14px 0 6px">Magento core — informational</h3>' . $renderModTable($coreMods);
         }
 
-        // ---------- Core findings (collapsed at end of report) ----------
         $coreHtml = '';
         if (!empty($coreFindings)) {
             $rows = '';
@@ -252,7 +236,6 @@ class ExportPdf extends Action
                 . '<table><thead><tr><th style="width:80px">Severity</th><th>Issue</th><th style="width:90px">Measured</th></tr></thead><tbody>' . $rows . '</tbody></table>';
         }
 
-        // ---------- Top events ----------
         $top = array_slice($events, 0, 200);
         $eventRows = '';
         foreach ($top as $e) {
