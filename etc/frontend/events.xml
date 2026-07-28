@@ -5,7 +5,7 @@
  *
  * Observe layout_load_before so we can opt-in the
  * `panth_performance_debugger_toolbar` handle (cacheable="false") only
- * for requests that actually show the toolbar — keeps regular visitor
+ * for requests that actually show the toolbar - keeps regular visitor
  * pages fully FPC-cacheable.
  */
 -->

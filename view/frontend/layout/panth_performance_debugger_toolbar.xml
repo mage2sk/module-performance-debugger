@@ -6,8 +6,8 @@
  * Conditional handle added by Observer\AddToolbarLayoutHandle ONLY when
  * the debugger toolbar should actually render (config flag + IP
  * allow-list / developer mode). The cacheable="false" here is deliberate
- * — the toolbar surfaces per-request profiling data and must never be
- * cached by FPC — but because the handle is opt-in, regular visitor
+ * - the toolbar surfaces per-request profiling data and must never be
+ * cached by FPC - but because the handle is opt-in, regular visitor
  * pages stay fully cacheable.
  */
 -->

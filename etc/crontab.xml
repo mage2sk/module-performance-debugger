@@ -7,6 +7,6 @@
         <job name="panth_perf_cleanup" instance="Panth\PerformanceDebugger\Cron\CleanupRuns" method="execute">
             <schedule>0 * * * *</schedule>
         </job>
-        <!-- Daily heartbeat — conditional inside Cron\SendHeartbeat. -->
+        <!-- Daily heartbeat - conditional inside Cron\SendHeartbeat. -->
     </group>
 </config>

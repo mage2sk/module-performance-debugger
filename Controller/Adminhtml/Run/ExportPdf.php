@@ -103,9 +103,9 @@ class ExportPdf extends Action
         return match ($kind) {
             'duplicate_query' => "// Cache the resolved set in a request-scoped service\nprivate ?array \$cache = null;\npublic function getOptions(int \$id): array {\n    \$this->cache ??= \$this->repo->getAll();\n    return \$this->cache[\$id] ?? [];\n}",
             'slow_query'      => "// 1) EXPLAIN the query in MySQL\n// 2) Add a composite index on the WHERE/JOIN columns\nALTER TABLE my_table ADD INDEX (col_a, col_b);",
-            'slow_block'      => "<!-- layout XML: enable block_html cache -->\n<block class=\"…\" name=\"my.block\" cacheable=\"true\">\n  <arguments>\n    <argument name=\"cache_lifetime\" xsi:type=\"number\">3600</argument>\n  </arguments>\n</block>",
+            'slow_block'      => "<!-- layout XML: enable block_html cache -->\n<block class=\"...\" name=\"my.block\" cacheable=\"true\">\n  <arguments>\n    <argument name=\"cache_lifetime\" xsi:type=\"number\">3600</argument>\n  </arguments>\n</block>",
             'slow_observer'   => "// Move the heavy work off the synchronous request:\n// 1) Add a queue topic in etc/queue.xml\n// 2) Publish from the observer\n\$this->publisher->publish('my.topic', \$payload);",
-            'heavy_module'    => "// Audit:\n//  - blocks → enable cache or lazy-render via AJAX\n//  - observers → move heavy work to async queue\n//  - repositories → batch IDs to avoid N+1",
+            'heavy_module'    => "// Audit:\n//  - blocks -> enable cache or lazy-render via AJAX\n//  - observers -> move heavy work to async queue\n//  - repositories -> batch IDs to avoid N+1",
             default           => '',
         };
     }
@@ -212,12 +212,12 @@ class ExportPdf extends Action
         };
         $modulesHtml = '';
         if (!empty($userlandMods)) {
-            $modulesHtml .= '<h3 style="font-size:12px;color:#0f172a;margin:8px 0 6px">Your modules — actionable</h3>' . $renderModTable($userlandMods);
+            $modulesHtml .= '<h3 style="font-size:12px;color:#0f172a;margin:8px 0 6px">Your modules - actionable</h3>' . $renderModTable($userlandMods);
         } else {
             $modulesHtml .= '<div class="empty" style="padding:14px">No third-party / theme modules contributing measurable time.</div>';
         }
         if (!empty($coreMods)) {
-            $modulesHtml .= '<h3 style="font-size:12px;color:#64748b;margin:14px 0 6px">Magento core — informational</h3>' . $renderModTable($coreMods);
+            $modulesHtml .= '<h3 style="font-size:12px;color:#64748b;margin:14px 0 6px">Magento core - informational</h3>' . $renderModTable($coreMods);
         }
 
         $coreHtml = '';
@@ -229,7 +229,7 @@ class ExportPdf extends Action
                     . '<td>' . $h($f['title']) . ($f['module'] ? ' <span class="mod">' . $h($f['module']) . '</span>' : '') . '</td>'
                     . '<td>' . number_format((float) $f['measured_ms'], 2) . ' ms</td></tr>';
             }
-            $coreHtml = '<h2>Magento core findings (' . count($coreFindings) . ') — informational</h2>'
+            $coreHtml = '<h2>Magento core findings (' . count($coreFindings) . ') - informational</h2>'
                 . '<div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:11px;color:#475569">'
                 . 'These originate inside <code>vendor/magento/*</code>. They cost real time but you usually cannot fix them without forking framework code.'
                 . '</div>'
@@ -335,8 +335,8 @@ class ExportPdf extends Action
 </head>
 <body>
   <div class="toolbar"><button onclick="window.print()">Print / Save as PDF</button></div>
-  <h1>Performance Report — Run #{$h($run['run_id'])}</h1>
-  <div class="url"><strong>{$h($run['route'])}</strong> — {$h($run['url'])}</div>
+  <h1>Performance Report - Run #{$h($run['run_id'])}</h1>
+  <div class="url"><strong>{$h($run['route'])}</strong> - {$h($run['url'])}</div>
   <div class="url" style="font-size:11px">Captured at {$h($run['created_at'])}</div>
 
   <h2>Summary</h2>

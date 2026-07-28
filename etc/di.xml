@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 
-    <!-- Profiler is a singleton — same instance shared across all collectors in one request -->
+    <!-- Profiler is a singleton - same instance shared across all collectors in one request -->
     <type name="Panth\PerformanceDebugger\Service\Profiler" shared="true"/>
 
     <!-- Collectors that apply globally (admin + frontend + cron + cli) -->

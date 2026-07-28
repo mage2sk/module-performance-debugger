@@ -79,7 +79,7 @@ $last = min($page * $pageSize, $total);
     <div class="panth-perf-toolbar">
         <form method="get" action="<?= $block->escapeUrl($block->getUrl('performancedebugger/run/index')) ?>">
             <input type="hidden" name="key" value="<?= $block->escapeHtmlAttr($block->getRequest()->getParam('key', '')) ?>">
-            <input type="text" name="q" placeholder="<?= $block->escapeHtmlAttr(__('Search URL or route…')) ?>" value="<?= $block->escapeHtmlAttr($q) ?>">
+            <input type="text" name="q" placeholder="<?= $block->escapeHtmlAttr(__('Search URL or route...')) ?>" value="<?= $block->escapeHtmlAttr($q) ?>">
             <select name="sev">
                 <option value="0" <?= $sevFilter === 0 ? 'selected' : '' ?>><?= $block->escapeHtml(__('Any severity')) ?></option>
                 <option value="1" <?= $sevFilter === 1 ? 'selected' : '' ?>><?= $block->escapeHtml(__('Low+')) ?></option>
@@ -154,7 +154,7 @@ $last = min($page * $pageSize, $total);
         $start = max(1, $end - $pagerWindow + 1);
         ?>
         <div class="panth-perf-pager">
-            <div class="info"><?= $block->escapeHtml(__('Showing %1–%2 of %3', $first, $last, number_format($total))) ?></div>
+            <div class="info"><?= $block->escapeHtml(__('Showing %1-%2 of %3', $first, $last, number_format($total))) ?></div>
             <div class="nums">
                 <?php if ($page > 1): ?>
                     <a href="<?= $block->escapeUrl($block->gridUrl(['p' => 1])) ?>" title="<?= $block->escapeHtmlAttr(__('First')) ?>">«</a>

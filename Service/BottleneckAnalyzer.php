@@ -48,7 +48,7 @@ class BottleneckAnalyzer
                     'measured_ms' => round($totalMs, 2),
                     'module' => $module,
                     'why' => $isLikelyN1
-                        ? 'Same SQL fingerprint executed many times in one request — classic N+1. Each round-trip adds latency.'
+                        ? 'Same SQL fingerprint executed many times in one request - classic N+1. Each round-trip adds latency.'
                         : 'Identical query repeated more than threshold. Likely missing static cache inside the request scope.',
                     'suggestion' => $isLikelyN1
                         ? 'Batch via WHERE id IN (...) or a single JOIN, or cache the resolved set in a request-scoped registry.'

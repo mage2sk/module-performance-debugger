@@ -56,7 +56,7 @@ $aggregates = $summary['aggregates'] ?? [];
 <div class="panth-perf-detail">
     <div class="panth-perf-toolbar">
         <a href="<?= $block->escapeUrl($block->getBackUrl()) ?>" class="panth-perf-btn back">
-            ← <?= $block->escapeHtml(__('Back to Profiler Runs')) ?>
+            <?= $block->escapeHtml(__('Back to Profiler Runs')) ?>
         </a>
         <a href="<?= $block->escapeUrl($block->getXlsUrl()) ?>" class="panth-perf-btn">
             ↓ <?= $block->escapeHtml(__('Download XLS')) ?>

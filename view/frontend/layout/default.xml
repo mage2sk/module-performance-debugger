@@ -4,7 +4,7 @@
  * Copyright © Panth Infotech. All rights reserved.
  *
  * No-op default layout. The toolbar block is INTENTIONALLY not declared
- * here — declaring it on the default handle with cacheable="false" used
+ * here - declaring it on the default handle with cacheable="false" used
  * to break Full Page Cache on every frontend page. The toolbar is now
  * loaded via the conditional handle `panth_performance_debugger_toolbar`
  * which `Observer\AddToolbarLayoutHandle` adds only when the toolbar
