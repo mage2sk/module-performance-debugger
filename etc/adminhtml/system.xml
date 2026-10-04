@@ -1,0 +1,148 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ * Admin System Configuration
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="performance_debugger" translate="label" type="text" sortOrder="180" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Performance Debugger</label>
+            <tab>panth</tab>
+            <resource>Panth_PerformanceDebugger::config</resource>
+
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Profiler</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Master switch. When disabled the profiler does not record anything. When enabled, only requests with a profiling session started from Performance Debugger > Profiler Runs, or from an allowed IP address, are recorded.</comment>
+                </field>
+                <field id="show_toolbar" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Frontend Toolbar</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Render the floating performance debugger panel on the storefront. Shown only to browsers with a profiling session started by an admin user with the Profiler Runs permission, unless "Show Toolbar to Allowed IPs" is Yes.</comment>
+                    <depends><field id="enabled">1</field></depends>
+                </field>
+                <field id="allowed_ips" translate="label comment" type="textarea" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Allowed IP Addresses</label>
+                    <backend_model>Panth\PerformanceDebugger\Model\Config\Backend\AllowedIps</backend_model>
+                    <comment>Comma-separated list of IPv4 or IPv6 client addresses whose requests are always recorded, without a profiling session. Invalid entries are rejected on save. The IP is taken from REMOTE_ADDR; proxy headers are used only when Magento's RemoteAddress is configured for them. "*" records every visitor and is ignored in production mode.</comment>
+                    <depends><field id="enabled">1</field></depends>
+                </field>
+                <field id="session_lifetime" translate="label comment" type="text" sortOrder="32" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Profiling Session Lifetime (hours)</label>
+                    <comment>How long a profiling session started from the Profiler Runs page stays valid (1 to 168 hours).</comment>
+                    <validate>validate-digits validate-digits-range digits-range-1-168</validate>
+                    <depends><field id="enabled">1</field></depends>
+                </field>
+                <field id="toolbar_ip_access" translate="label comment" type="select" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show Toolbar to Allowed IPs</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Yes restores the earlier behaviour: the toolbar is shown on recorded requests to clients in "Allowed IP Addresses" (and, in developer mode, loopback and private-network clients) without a profiling session. No requires a session started from the admin.</comment>
+                    <depends><field id="enabled">1</field></depends>
+                </field>
+                <field id="safe_mode" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Production-Safe Mode</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Forces Track Plugins and Track DI Resolution off. Those collectors are not implemented yet, so this setting currently has no runtime effect.</comment>
+                    <depends><field id="enabled">1</field></depends>
+                </field>
+            </group>
+
+            <group id="collectors" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Collectors</label>
+                <field id="track_blocks" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Track Block Rendering</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="track_observers" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Track Observers</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="track_plugins" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Track Plugins</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Not implemented yet. No collector records plugin events, so this setting currently has no effect.</comment>
+                </field>
+                <field id="track_db" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Track DB Queries</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="track_layout" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Track Layout XML</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="track_di" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Track DI Resolution</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Not implemented yet. No collector records DI resolution events, so this setting currently has no effect.</comment>
+                </field>
+                <field id="track_memory" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Track Memory Per Event</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+
+            <group id="thresholds" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Thresholds</label>
+                <field id="slow_query_ms" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Slow Query (ms)</label>
+                    <comment>Queries above this duration are flagged.</comment>
+                    <validate>validate-number</validate>
+                </field>
+                <field id="slow_block_ms" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Slow Block Render (ms)</label>
+                    <validate>validate-number</validate>
+                </field>
+                <field id="slow_observer_ms" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Slow Observer (ms)</label>
+                    <validate>validate-number</validate>
+                </field>
+                <field id="slow_plugin_ms" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Slow Plugin (ms)</label>
+                    <comment>Not used yet because plugin events are not recorded.</comment>
+                    <validate>validate-number</validate>
+                </field>
+                <field id="duplicate_query_threshold" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Duplicate Query Threshold</label>
+                    <comment>Same SQL repeated this many times triggers an N+1 warning.</comment>
+                    <validate>validate-number</validate>
+                </field>
+            </group>
+
+            <group id="storage" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Storage</label>
+                <field id="persist_runs" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Persist Profiler Runs</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Save runs to the database so they appear in the admin Profiler Runs grid.</comment>
+                </field>
+                <field id="retention_hours" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Retention (hours)</label>
+                    <comment>Auto-cleanup cron deletes runs older than this, whether or not Persist Profiler Runs is enabled. Default 24.</comment>
+                    <validate>validate-number</validate>
+                </field>
+                <field id="max_events_per_run" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Max Events Per Run</label>
+                    <comment>Hard cap so a runaway page cannot bloat storage.</comment>
+                    <validate>validate-number</validate>
+                </field>
+            </group>
+
+            <group id="export" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Reports</label>
+                <field id="enable_xls" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Excel (XLS) Export</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Downloads an Excel 2003 XML spreadsheet with the .xls extension.</comment>
+                </field>
+                <field id="enable_pdf" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable PDF Export</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

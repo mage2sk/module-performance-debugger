@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Panth Infotech. All rights reserved.
+ * Database Schema
+ *
+ * Two tables:
+ *   panth_perf_run        - one row per profiled HTTP request
+ *   panth_perf_run_event  - per-event records belonging to a run (block/observer/plugin/query/etc)
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="panth_perf_run" resource="default" engine="innodb" comment="Performance Profiler Runs">
+        <column xsi:type="int" name="run_id" unsigned="true" nullable="false" identity="true" comment="Run ID"/>
+        <column xsi:type="varchar" name="token" nullable="false" length="40" comment="Public Run Token"/>
+        <column xsi:type="text" name="url" nullable="false" comment="Request URL"/>
+        <column xsi:type="varchar" name="route" nullable="true" length="255" comment="Route handle"/>
+        <column xsi:type="varchar" name="method" nullable="false" length="10" default="GET" comment="HTTP method"/>
+        <column xsi:type="int" name="status_code" unsigned="true" nullable="false" default="200" comment="HTTP status"/>
+        <column xsi:type="varchar" name="area" nullable="false" length="32" default="frontend" comment="Area code"/>
+        <column xsi:type="int" name="store_id" unsigned="true" nullable="false" default="0" comment="Store ID"/>
+        <column xsi:type="float" name="total_time" nullable="false" default="0" comment="Total wall-clock ms"/>
+        <column xsi:type="float" name="db_time" nullable="false" default="0" comment="Total DB time ms"/>
+        <column xsi:type="int" name="db_queries" unsigned="true" nullable="false" default="0" comment="Total DB queries"/>
+        <column xsi:type="int" name="db_slow" unsigned="true" nullable="false" default="0" comment="Slow query count"/>
+        <column xsi:type="int" name="db_duplicates" unsigned="true" nullable="false" default="0" comment="Duplicate query count"/>
+        <column xsi:type="float" name="block_time" nullable="false" default="0" comment="Total block render ms"/>
+        <column xsi:type="int" name="block_count" unsigned="true" nullable="false" default="0" comment="Block render count"/>
+        <column xsi:type="float" name="observer_time" nullable="false" default="0" comment="Total observer ms"/>
+        <column xsi:type="int" name="observer_count" unsigned="true" nullable="false" default="0" comment="Observer count"/>
+        <column xsi:type="float" name="plugin_time" nullable="false" default="0" comment="Total plugin ms"/>
+        <column xsi:type="int" name="plugin_count" unsigned="true" nullable="false" default="0" comment="Plugin count"/>
+        <column xsi:type="bigint" name="memory_peak" unsigned="true" nullable="false" default="0" comment="Peak memory bytes"/>
+        <column xsi:type="int" name="bottleneck_count" unsigned="true" nullable="false" default="0" comment="Bottleneck count"/>
+        <column xsi:type="int" name="severity_max" unsigned="true" nullable="false" default="0" comment="Max severity 1-4"/>
+        <column xsi:type="text" name="summary" nullable="true" comment="JSON summary blob"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="run_id"/>
+        </constraint>
+
+        <constraint xsi:type="unique" referenceId="PANTH_PERF_RUN_TOKEN">
+            <column name="token"/>
+        </constraint>
+
+        <index referenceId="PANTH_PERF_RUN_CREATED_AT" indexType="btree">
+            <column name="created_at"/>
+        </index>
+
+        <index referenceId="PANTH_PERF_RUN_TOTAL_TIME" indexType="btree">
+            <column name="total_time"/>
+        </index>
+
+        <index referenceId="PANTH_PERF_RUN_ROUTE" indexType="btree">
+            <column name="route"/>
+        </index>
+    </table>
+
+    <table name="panth_perf_run_event" resource="default" engine="innodb" comment="Profiler Run Events">
+        <column xsi:type="int" name="event_id" unsigned="true" nullable="false" identity="true" comment="Event ID"/>
+        <column xsi:type="int" name="run_id" unsigned="true" nullable="false" comment="Run ID"/>
+        <column xsi:type="varchar" name="kind" nullable="false" length="32" comment="block|observer|plugin|query|controller|layout|di|memory|misc"/>
+        <column xsi:type="varchar" name="label" nullable="false" length="500" comment="Identifier (block name, sql, class, etc.)"/>
+        <column xsi:type="varchar" name="source" nullable="true" length="500" comment="Source file or class:method"/>
+        <column xsi:type="float" name="duration" nullable="false" default="0" comment="Duration ms"/>
+        <column xsi:type="bigint" name="memory_delta" nullable="false" default="0" comment="Memory delta bytes"/>
+        <column xsi:type="int" name="invocations" unsigned="true" nullable="false" default="1" comment="Times executed"/>
+        <column xsi:type="varchar" name="severity" nullable="true" length="16" comment="low|medium|high|critical"/>
+        <column xsi:type="text" name="meta" nullable="true" comment="JSON blob with extra context"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="event_id"/>
+        </constraint>
+
+        <constraint xsi:type="foreign" referenceId="PANTH_PERF_EVENT_RUN_ID_FK"
+                    table="panth_perf_run_event" column="run_id"
+                    referenceTable="panth_perf_run" referenceColumn="run_id"
+                    onDelete="CASCADE"/>
+
+        <index referenceId="PANTH_PERF_EVENT_RUN_KIND" indexType="btree">
+            <column name="run_id"/>
+            <column name="kind"/>
+        </index>
+
+        <index referenceId="PANTH_PERF_EVENT_DURATION" indexType="btree">
+            <column name="duration"/>
+        </index>
+    </table>
+</schema>

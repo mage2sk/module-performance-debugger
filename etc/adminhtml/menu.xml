@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Panth_PerformanceDebugger::group"
+             title="Performance Debugger"
+             module="Panth_PerformanceDebugger"
+             sortOrder="80"
+             parent="Panth_Core::panth_extensions"
+             resource="Panth_PerformanceDebugger::config"/>
+
+        <add id="Panth_PerformanceDebugger::settings"
+             title="Configuration"
+             module="Panth_PerformanceDebugger"
+             sortOrder="10"
+             parent="Panth_PerformanceDebugger::group"
+             action="adminhtml/system_config/edit/section/performance_debugger"
+             resource="Panth_PerformanceDebugger::config"/>
+
+        <add id="Panth_PerformanceDebugger::runs"
+             title="Profiler Runs"
+             module="Panth_PerformanceDebugger"
+             sortOrder="20"
+             parent="Panth_PerformanceDebugger::group"
+             action="performancedebugger/run/index"
+             resource="Panth_PerformanceDebugger::runs"/>
+    </menu>
+</config>
